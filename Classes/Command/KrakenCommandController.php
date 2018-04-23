@@ -62,7 +62,7 @@ class KrakenCommandController extends CommandController
      * It's recommended to run this command, just before activating "liveOptimization" in the settings.
      *
      * !!Warning!!
-     * Executing this command will also send potentially optimized images to the Kraken API and thus will still
+     * Executing this command multiple times will send potentially already optimized images to the Kraken API and thus will still
      * count towards your API quota and can lead to "over optimized" images when running lossy optimizations multiple times.
      *
      * New resources are optimized automatically (if "liveOptimization" is activated), so there is no need to run
