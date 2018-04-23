@@ -1,0 +1,19 @@
+{
+    "description": "Image optimizer for Neos utilizing the Kraken API.",
+    "type": "typo3-flow-plugin",
+    "name": "gesagtgetan/krakenoptimizer",
+    "require": {
+        "neos/neos": "^2.3",
+        "guzzlehttp/guzzle": "~6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GesagtGetan\\KrakenOptimizer\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "GesagtGetan.KrakenOptimizer"
+        }
+    }
+}

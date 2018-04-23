@@ -1,0 +1,21 @@
+TYPO3:
+  Flow:
+    mvc:
+      routes:
+        'GesagtGetan.KrakenOptimizer':
+          position: 'start'
+GesagtGetan:
+  KrakenOptimizer:
+    # Optimize freshly generated thumbnails
+    liveOptimization: false
+    requestOptions:
+      # Options for guzzle HTTP client
+      # See: http://docs.guzzlephp.org/en/stable/request-options.html
+      base_uri: 'https://api.kraken.io/v1/upload'
+    krakenOptions:
+      # Options for kraken API calls
+      # See: https://kraken.io/docs
+      auth:
+        api_key: ~
+        api_secret: ~
+      lossy: true

@@ -1,0 +1,10 @@
+privilegeTargets:
+  TYPO3\Flow\Security\Authorization\Privilege\Method\MethodPrivilege:
+    'GesagtGetan.KrakenOptimizer:KrakenController':
+      matcher: 'method(GesagtGetan\KrakenOptimizer\Controller\KrakenController->(.*)Action())'
+roles:
+  'TYPO3.Flow:Everybody':
+    privileges:
+      -
+        privilegeTarget: 'GesagtGetan.KrakenOptimizer:KrakenController'
+        permission: GRANT

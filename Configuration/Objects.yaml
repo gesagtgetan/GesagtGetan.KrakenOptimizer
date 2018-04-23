@@ -1,0 +1,5 @@
+GuzzleHttp\Client:
+  scope: prototype
+  arguments:
+    1:
+      setting: GesagtGetan.KrakenOptimizer.requestOptions
