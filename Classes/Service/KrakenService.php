@@ -30,13 +30,13 @@ class KrakenService implements KrakenServiceInterface
     /**
      * Request optimized resource from Kraken.
      *
-     * @param Resource $originalResource
+     * @param PersistentResource $originalResource
      * @param array $krakenOptions
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Neos\Flow\Exception
      */
-    public function requestOptimizedResource(Resource $originalResource, array $krakenOptions = []): string
+    public function requestOptimizedResource(PersistentResource $originalResource, array $krakenOptions = []): string
     {
         if (!isset($this->settings['krakenOptions']['auth']['api_key']) || !isset($this->settings['krakenOptions']['auth']['api_secret'])) {
             throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);

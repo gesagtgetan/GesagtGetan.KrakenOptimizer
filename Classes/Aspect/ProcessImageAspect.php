@@ -52,7 +52,6 @@ class ProcessImageAspect
     /**
      * @param JoinPointInterface $joinPoint
      * @Flow\Around ("method(Neos\Media\Domain\Service\ImageService->processImage())")
-     * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      * @return array
      */
     public function retrieveAdjustedOriginalResource(JoinPointInterface $joinPoint): array
@@ -63,7 +62,7 @@ class ProcessImageAspect
             return $originalResult;
         }
 
-        /* @var $originalResource Resource */
+        /* @var $originalResource PersistentResource */
         $originalResource = $originalResult['resource'];
 
         try {
@@ -85,10 +84,10 @@ class ProcessImageAspect
      * Request optimized resource from Kraken and also define callback URL
      * for asynchronous image replacement.
      *
-     * @param Resource $originalResource
+     * @param PersistentResource $originalResource
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
-    private function requestOptimizedResource(Resource $originalResource)
+    private function requestOptimizedResource(PersistentResource $originalResource)
     {
         $krakenOptions = [
             'callback_url' => $this->generateUri(

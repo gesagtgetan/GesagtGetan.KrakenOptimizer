@@ -8,8 +8,8 @@ interface KrakenServiceInterface
     /**
      * Request optimized resource from Kraken.
      *
-     * @param Resource $originalResource
+     * @param PersistentResource $originalResource
      * @param array $krakenOptions
      */
-    public function requestOptimizedResource(Resource $originalResource, array $krakenOptions = []);
+    public function requestOptimizedResource(PersistentResource $originalResource, array $krakenOptions = []);
 }

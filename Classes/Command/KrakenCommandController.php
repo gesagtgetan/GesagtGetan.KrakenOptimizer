@@ -120,10 +120,10 @@ class KrakenCommandController extends CommandController
     /**
      * Request optimized resource from Kraken and return result.
      *
-     * @param Resource $originalResource
+     * @param PersistentResource $originalResource
      * @return string the response as JSON
      */
-    private function requestOptimizedResource(Resource $originalResource): string
+    private function requestOptimizedResource(PersistentResource $originalResource): string
     {
         return $this->krakenService->requestOptimizedResource($originalResource, ['wait' => true]);
     }
