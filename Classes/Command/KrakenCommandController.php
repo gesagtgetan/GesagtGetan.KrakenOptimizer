@@ -75,23 +75,26 @@ class KrakenCommandController extends CommandController
      * The server might end up with handling a lot of requests, since for every optimized resource an
      * asynchronous callback method is invoked to replace the physical image.
      *
+     * @param int $offset offset to start optimization (useful when optimization previously stopped at a certain thumbnail)
      * @throws \Neos\Flow\Exception
      */
-    public function optimizeCommand()
+    public function optimizeCommand(int $offset = 0)
     {
         $thumbnailCount = $this->thumbnailRepository->countAll();
         $iterator = $this->thumbnailRepository->findAllIterator();
         $this->output->progressStart($thumbnailCount);
         $savedBytes = 0;
-        $answer = $this->output->askConfirmation('Send '. $thumbnailCount . ' thumbnails to Kraken for optimization?');
+        $iteration = 0;
+        $answer = $this->output->askConfirmation('Send '. ($thumbnailCount - $offset) . ' thumbnails to Kraken for optimization?');
 
         if ($answer === false) {
             exit();
         }
 
         foreach ($this->thumbnailRepository->iterate($iterator) as $thumbnail) {
-            if ($thumbnail->getResource() === null) {
+            if ($thumbnail->getResource() === null || $iteration < $offset) {
                 $this->output->progressAdvance(1);
+                $iteration++;
                 continue;
             }
 
@@ -108,6 +111,7 @@ class KrakenCommandController extends CommandController
 
             $this->resourceService->replaceLocalFile($krakenIoResult);
             $this->output->progressAdvance(1);
+            $iteration++;
         }
 
         $this->outputLine('');
