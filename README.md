@@ -30,8 +30,6 @@ GesagtGetan:
         api_key: '<yourApiKey>'
         api_secret: '<yourApiSecret>'
 ```
-
-
 ## Usage
 
 1. We usually want to optimize all existing resources. We can do this by running this CLI command 
@@ -61,3 +59,19 @@ will be send to kraken for improvement when this flag is set:
      krakenOptions:
         liveOptimization: true
  ```
+
+3. Delete Production cache
+```
+FLOW_CONTEXT=Production ./flow flow:cache:flush
+```
+
+## Troubleshooting and FAQ
+**Q: I already optimized my thumbnails before installing this plugin, but I'm unhappy with the result**
+
+A: If your thumbnails already show signs of high compression like artefacts, this plugin can not restore that missing
+information. In that case it's necessary to clear all your existing thumbnails with `./flow media:clearthumbnails`.
+Be aware that this can put a lot of load on your server since all thumbnails need recreation, when a page has been called.
+You can activate `liveOptimization` right away, or optimize the created thumbnails later by running `./flow kraken:optimize`.
+
+If you need all your thumbnails in all your preset sizes, you can pre-generate them by running `./flow media:createthumbnails` and
+`./flow media:renderthumbnails`. Either optimize afterwads or have `liveOptimization` activated.
