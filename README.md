@@ -2,7 +2,7 @@
 GesagtGetan.KrakenOptimizer
 ---------------------------
 
-**!WARNING! We are currently field testing this package on a live site, do not use this plugin in your project until further notice **
+**!WARNING! We are currently field testing this package on a live site, do not use this plugin in your project until further notice**
 
 Image optimizer for Neos utilizing the Kraken API
 
@@ -44,7 +44,7 @@ because this can dramatically decrease image size, while no noticeable decrease 
 change the optimization strategy by altering the `krakenOptions` in the settings (set `lossy: false`), along with other
 arbitrary Kraken API options (see [https://kraken.io/docs/](https://kraken.io/docs/)).
 
-####Warning:
+#### Warning:
 Executing this command multiple times will send potentially already optimized images to the Kraken API and thus will still
 count towards your API quota and can lead to "over optimized" images when running lossy optimizations multiple times. 
 
