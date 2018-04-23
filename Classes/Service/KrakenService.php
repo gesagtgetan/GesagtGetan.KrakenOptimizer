@@ -1,9 +1,9 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Service;
 
-use TYPO3\Flow\Annotations as Flow;
+use Neos\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
-use TYPO3\Flow\ResourceManagement\PersistentResource;
+use Neos\Flow\ResourceManagement\PersistentResource;
 use GuzzleHttp\Psr7;
 
 /**
@@ -34,12 +34,12 @@ class KrakenService implements KrakenServiceInterface
      * @param array $krakenOptions
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \TYPO3\Flow\Exception
+     * @throws \Neos\Flow\Exception
      */
     public function requestOptimizedResource(Resource $originalResource, array $krakenOptions = []): string
     {
         if (!isset($this->settings['krakenOptions']['auth']['api_key']) || !isset($this->settings['krakenOptions']['auth']['api_secret'])) {
-            throw new \TYPO3\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
+            throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
         }
 
         $krakenOptions = array_merge($krakenOptions, $this->settings['krakenOptions']);

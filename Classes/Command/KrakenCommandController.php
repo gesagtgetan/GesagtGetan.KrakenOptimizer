@@ -1,14 +1,14 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Command;
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Cli\CommandController;
+use Neos\Flow\Log\SystemLoggerInterface;
 use TYPO3\Media\Domain\Repository\ThumbnailRepository;
 use TYPO3\Media\Domain\Service\ThumbnailService;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
-use TYPO3\Flow\ResourceManagement\PersistentResource;
+use Neos\Flow\ResourceManagement\PersistentResource;
 
 /**
  * @Flow\Scope("singleton")
@@ -75,7 +75,7 @@ class KrakenCommandController extends CommandController
      * The server might end up with handling a lot of requests, since for every optimized resource an
      * asynchronous callback method is invoked to replace the physical image.
      *
-     * @throws \TYPO3\Flow\Exception
+     * @throws \Neos\Flow\Exception
      */
     public function optimizeCommand()
     {
@@ -98,7 +98,7 @@ class KrakenCommandController extends CommandController
             try {
                 $krakenIoResult = json_decode($this->requestOptimizedResource($thumbnail->getResource()), true);
             } catch(\Exception $exception) {
-                throw new \TYPO3\Flow\Exception(
+                throw new \Neos\Flow\Exception(
                     'Failed to get optimized version for ' . $thumbnail->getResource()->getFileName() . '. ' .
                     'Original Message: ' . $exception->getMessage(), 1524251845 );
             }

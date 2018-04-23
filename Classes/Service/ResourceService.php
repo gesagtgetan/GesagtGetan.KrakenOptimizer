@@ -1,8 +1,8 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Service;
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Log\SystemLoggerInterface;
 use GuzzleHttp\Client;
 
 /**

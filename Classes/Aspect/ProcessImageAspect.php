@@ -1,13 +1,13 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Aspect;
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Aop\JoinPointInterface;
-use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\ResourceManagement\PersistentResource;
-use TYPO3\Flow\Mvc\Routing\UriBuilder;
-use TYPO3\Flow\Core\Bootstrap;
-use TYPO3\Flow\Mvc\ActionRequest;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Aop\JoinPointInterface;
+use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\ResourceManagement\PersistentResource;
+use Neos\Flow\Mvc\Routing\UriBuilder;
+use Neos\Flow\Core\Bootstrap;
+use Neos\Flow\Mvc\ActionRequest;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
 
 /**
@@ -52,7 +52,7 @@ class ProcessImageAspect
     /**
      * @param JoinPointInterface $joinPoint
      * @Flow\Around ("method(TYPO3\Media\Domain\Service\ImageService->processImage())")
-     * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
+     * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      * @return array
      */
     public function retrieveAdjustedOriginalResource(JoinPointInterface $joinPoint): array
@@ -86,7 +86,7 @@ class ProcessImageAspect
      * for asynchronous image replacement.
      *
      * @param Resource $originalResource
-     * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
+     * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
     private function requestOptimizedResource(Resource $originalResource)
     {
@@ -108,7 +108,7 @@ class ProcessImageAspect
      * @param string $packageKey
      * @param array $controllerArguments
      * @return string
-     * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
+     * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
     private function generateUri(string $actionName, string $controllerName, string $packageKey, array $controllerArguments = []): string
     {

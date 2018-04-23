@@ -1,7 +1,7 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Service;
 
-use TYPO3\Flow\ResourceManagement\PersistentResource;
+use Neos\Flow\ResourceManagement\PersistentResource;
 
 interface KrakenServiceInterface
 {
