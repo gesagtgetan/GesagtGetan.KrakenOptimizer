@@ -3,7 +3,7 @@ namespace GesagtGetan\KrakenOptimizer\Service;
 
 use TYPO3\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
-use TYPO3\Flow\Resource\Resource;
+use TYPO3\Flow\ResourceManagement\PersistentResource;
 use GuzzleHttp\Psr7;
 
 /**

@@ -4,7 +4,7 @@ namespace GesagtGetan\KrakenOptimizer\Aspect;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Aop\JoinPointInterface;
 use TYPO3\Flow\Log\SystemLoggerInterface;
-use TYPO3\Flow\Resource\Resource;
+use TYPO3\Flow\ResourceManagement\PersistentResource;
 use TYPO3\Flow\Mvc\Routing\UriBuilder;
 use TYPO3\Flow\Core\Bootstrap;
 use TYPO3\Flow\Mvc\ActionRequest;
