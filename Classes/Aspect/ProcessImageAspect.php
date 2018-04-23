@@ -51,7 +51,7 @@ class ProcessImageAspect
 
     /**
      * @param JoinPointInterface $joinPoint
-     * @Flow\Around ("method(TYPO3\Media\Domain\Service\ImageService->processImage())")
+     * @Flow\Around ("method(Neos\Media\Domain\Service\ImageService->processImage())")
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      * @return array
      */
