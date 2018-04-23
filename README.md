@@ -44,6 +44,10 @@ because this can dramatically decrease image size, while no noticeable decrease 
 change the optimization strategy by altering the `krakenOptions` in the settings (set `lossy: false`), along with other
 arbitrary Kraken API options (see [https://kraken.io/docs/](https://kraken.io/docs/)).
 
+#### Tip:
+In case something goes wrong during the initial optimization, it's possible to resume optimization from a preferred offset.
+For example `./flow kraken:optimize --offset 300` will skip the first 299 thumbnails.    
+
 #### Warning:
 Executing this command multiple times will send potentially already optimized images to the Kraken API and thus will still
 count towards your API quota and can lead to "over optimized" images when running lossy optimizations multiple times. 
