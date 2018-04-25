@@ -94,7 +94,11 @@ class ProcessImageAspect
                 'replaceLocalFile',
                 'Kraken',
                 'GesagtGetan.KrakenOptimizer',
-                ['originalFilename' => $originalResource->getFilename()]
+                [
+                    'originalFilename' => $originalResource->getFilename(),
+                    'verificationToken' =>
+                        password_hash($this->settings['krakenOptions']['auth']['api_key'], PASSWORD_BCRYPT, ['cost' => 4])
+                ]
             )
         ];
 
