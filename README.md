@@ -17,7 +17,7 @@ Image optimizer for Neos utilizing the Kraken API
 composer require gesagtgetan/krakenoptimizer
 ```
                             
-Create a Kraken account on [https://kraken.io](https://kraken.io) and generate new API Keys on
+Create a Kraken account on [https://kraken.io](https://kraken.io/?ref=a6246f4dd262) and generate new API Keys on
 [https://kraken.io/account/api-credentials](https://kraken.io/account/api-credentials).
 
 Add the credentials to your global `Settings.yaml`:
