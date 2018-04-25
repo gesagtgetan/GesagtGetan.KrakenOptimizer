@@ -25,13 +25,29 @@ class KrakenController extends ActionController
     protected $defaultViewObjectName = JsonView::class;
 
     /**
+     * @var array
+     */
+    protected $settings;
+
+    public function injectSettings(array $settings)
+    {
+        $this->settings = $settings;
+    }
+
+    /**
      * Replaces the local file within the file system with the optimized image delivered by Kraken.
      *
+     * @throws \Neos\Flow\Exception
      * @see https://kraken.io/docs/wait-callback
      */
     public function replaceLocalFileAction()
     {
         $krakenIoResult = $this->request->getMainRequest()->getHttpRequest()->getArguments();
+
+        if (isset($krakenIoResult['verificationToken']) &&
+            password_verify($this->settings['krakenOptions']['auth']['api_key'], $krakenIoResult['verificationToken']) === false) {
+            throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
+        }
 
         if (isset($krakenIoResult['success']) && $krakenIoResult['success'] !== true) {
             $this->resourceService->replaceLocalFile($krakenIoResult);
