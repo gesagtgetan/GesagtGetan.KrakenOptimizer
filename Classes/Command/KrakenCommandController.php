@@ -85,7 +85,7 @@ class KrakenCommandController extends CommandController
         $this->output->progressStart($thumbnailCount);
         $savedBytes = 0;
         $iteration = 0;
-        $answer = $this->output->askConfirmation('Send '. ($thumbnailCount - $offset) . ' thumbnails to Kraken for optimization?');
+        $answer = $this->output->askConfirmation('Send ' . ($thumbnailCount - $offset) . ' thumbnails to Kraken for optimization?');
 
         if ($answer === false) {
             exit();
@@ -103,7 +103,9 @@ class KrakenCommandController extends CommandController
             } catch(\Exception $exception) {
                 throw new \TYPO3\Flow\Exception(
                     'Failed to get optimized version for ' . $thumbnail->getResource()->getFileName() . '. ' .
-                    'Original Message: ' . $exception->getMessage(), 1524251845 );
+                    'Original Message: ' . $exception->getMessage(),
+                    1524251845
+                );
             }
 
             $krakenIoResult['originalFilename'] = $thumbnail->getResource()->getFileName();

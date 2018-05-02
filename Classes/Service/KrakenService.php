@@ -44,7 +44,9 @@ class KrakenService implements KrakenServiceInterface
 
         $krakenOptions = array_merge($krakenOptions, $this->settings['krakenOptions']);
 
-        return $this->guzzleHttpClient->request('POST', '',
+        return $this->guzzleHttpClient->request(
+            'POST',
+            '',
             [
                 'multipart' => [
                     [

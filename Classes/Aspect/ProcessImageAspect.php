@@ -68,7 +68,7 @@ class ProcessImageAspect
 
         try {
             $this->requestOptimizedResource($originalResource);
-        } catch(\Exception $exception) {
+        } catch (\Exception $exception) {
             $this->systemLogger->log('Was unable to request optimized resource for' . $originalResource->getFilename() . ' from Kraken.', LOG_CRIT);
             $this->systemLogger->log($exception->getMessage(), LOG_CRIT);
 
