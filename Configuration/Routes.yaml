@@ -1,10 +1,10 @@
 -
-  name:  'Kraken Image Optimizer Callback Controller'
+  name: 'Kraken Image Optimizer Callback Controller'
   uriPattern: 'optimizeImage'
   defaults:
-    '@package':    'GesagtGetan.KrakenOptimizer'
+    '@package': 'GesagtGetan.KrakenOptimizer'
     '@controller': 'Kraken'
-    '@action':     'replaceLocalFile'
+    '@action': 'replaceLocalFile'
   toLowerCase: false
   appendExceedingArguments: true
   httpMethods: ['POST']

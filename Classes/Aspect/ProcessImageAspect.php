@@ -67,14 +67,14 @@ class ProcessImageAspect
 
         try {
             $this->requestOptimizedResource($originalResource);
-        } catch(\Exception $exception) {
-            $this->systemLogger->log('Was unable to request optimized resource for' . $originalResource->getFilename() . ' from Kraken.', LOG_CRIT);
+        } catch (\Exception $exception) {
+            $this->systemLogger->log('Was unable to request optimized resource for ' . $originalResource->getFilename() . ' from Kraken.', LOG_CRIT);
             $this->systemLogger->log($exception->getMessage(), LOG_CRIT);
 
             return $originalResult;
         }
 
-        $this->systemLogger->log('Requesting optimized version for ' . $originalResource->getFilename() . '(' . $originalResource->getSha1() . ')' .
+        $this->systemLogger->log('Requesting optimized version for ' . $originalResource->getFilename() . ' (' . $originalResource->getSha1() . ')' .
             ' from Kraken. Actual replacement is done asynchronously via callback.', LOG_DEBUG);
 
         return $originalResult;
