@@ -5,6 +5,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\View\JsonView;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
+use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
 
 /**
  * This is the Callback Controller for the Kraken API.
@@ -23,6 +24,12 @@ class KrakenController extends ActionController
      * @var string
      */
     protected $defaultViewObjectName = JsonView::class;
+
+    /**
+     * @Flow\Inject
+     * @var KrakenServiceInterface
+     */
+    protected $krakenService;
 
     /**
      * @var array
@@ -44,16 +51,19 @@ class KrakenController extends ActionController
     {
         $krakenIoResult = $this->request->getMainRequest()->getHttpRequest()->getArguments();
 
-        if (isset($krakenIoResult['verificationToken']) &&
-            password_verify($this->settings['krakenOptions']['auth']['api_key'], $krakenIoResult['verificationToken']) === false) {
+        if (!isset($krakenIoResult['success']) || $krakenIoResult['success'] !== 'true') {
+            throw new \Neos\Flow\Exception('Kraken was unable to optimize resource', 1524665608);
+        }
+
+        if (!isset($krakenIoResult['file_name'])) {
+            throw new \Neos\Flow\Exception('Filename missing in Kraken callback payload', 1524665605);
+        }
+
+        if (!isset($krakenIoResult['verificationToken']) ||
+            $this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['file_name']) === false) {
             throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
         }
 
-        if (isset($krakenIoResult['success']) && $krakenIoResult['success'] !== true) {
-            $this->resourceService->replaceLocalFile($krakenIoResult);
-        } else {
-            $this->systemLogger->log('Kraken was unable to optimize resource ' .
-                (isset($krakenIoResult['file_name']) ? $krakenIoResult['file_name'] : '<no file name returned>'));
-        }
+        $this->resourceService->replaceLocalFile($krakenIoResult);
     }
 }

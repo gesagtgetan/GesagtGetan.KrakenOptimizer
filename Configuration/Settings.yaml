@@ -1,6 +1,9 @@
 GesagtGetan:
   KrakenOptimizer:
     liveOptimization: false
+    # Optimize original resource if no thumbnail generation occured
+    # This is the case if the image size is equal or smaller than the requested thumbnail
+    optimizeOriginalResource: false
     requestOptions:
       base_uri: 'https://api.kraken.io/v1/upload'
     krakenOptions:

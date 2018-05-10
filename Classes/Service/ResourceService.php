@@ -41,7 +41,7 @@ class ResourceService implements ResourceServiceInterface
         $originalFilename = isset($krakenIoResult['originalFilename']) ? $krakenIoResult['originalFilename'] : '';
 
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
-            $this->systemLogger->log('No optimization necessary for file ' . $originalFilename . '(' . $fileName .')', LOG_DEBUG);
+            $this->systemLogger->log('No optimization necessary for file ' . $originalFilename . ' (' . $fileName .')', LOG_DEBUG);
 
             return;
         }
@@ -53,7 +53,7 @@ class ResourceService implements ResourceServiceInterface
             // download image from Kraken and override local thumbnail
             $this->guzzleHttpClient->get($krakenIoResult['kraked_url'], ['sink' => $resource]);
 
-            $this->systemLogger->log('Replaced ' . $originalFilename . '(' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
+            $this->systemLogger->log('Replaced ' . $originalFilename . ' (' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
                 $krakenIoResult['saved_bytes'] . ' bytes!', LOG_DEBUG);
         } catch (\Exception  $e) {
             $this->systemLogger->log('Could not retrieve and / or write image from Kraken for ' . $fileName, LOG_CRIT);
