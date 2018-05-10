@@ -8,6 +8,9 @@ GesagtGetan:
   KrakenOptimizer:
     # Optimize freshly generated thumbnails
     liveOptimization: false
+    # Optimize original resource if no thumbnail generation occured
+    # This is the case if the image size is equal or smaller than the requested thumbnail
+    optimizeOriginalResource: false
     requestOptions:
       # Options for guzzle HTTP client
       # See: http://docs.guzzlephp.org/en/stable/request-options.html

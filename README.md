@@ -53,12 +53,11 @@ count towards your API quota and can lead to "over optimized" images when runnin
 
 2. Now is the perfect time to activate live optimizations. All generated thumbnails after the initial optimiziation
 will be send to kraken for improvement when this flag is set:
- ```
- GesagtGetan:
-   KrakenOptimizer:
-     krakenOptions:
-        liveOptimization: true
- ```
+```yaml
+GesagtGetan:
+  KrakenOptimizer:
+    liveOptimization: true
+```
 
 3. Delete Production cache
 ```

@@ -92,23 +92,27 @@ class KrakenCommandController extends CommandController
         }
 
         foreach ($this->thumbnailRepository->iterate($iterator) as $thumbnail) {
-            if ($thumbnail->getResource() === null || $iteration < $offset) {
+            $originalAssetResource = $thumbnail->getOriginalAsset()->getResource();
+            $thumbnailResource = $thumbnail->getResource();
+
                 $this->output->progressAdvance(1);
                 $iteration++;
                 continue;
             }
 
             try {
-                $krakenIoResult = json_decode($this->requestOptimizedResource($thumbnail->getResource()), true);
+                $krakenIoResult = json_decode(
+                    $this->krakenService->requestOptimizedResource($thumbnailResource, ['wait' => true]), true
+                );
             } catch(\Exception $exception) {
                 throw new \TYPO3\Flow\Exception(
-                    'Failed to get optimized version for ' . $thumbnail->getResource()->getFileName() . '. ' .
+                    'Failed to get optimized version for ' . $thumbnailResource->getFileName() . '. ' .
                     'Original Message: ' . $exception->getMessage(),
                     1524251845
                 );
             }
 
-            $krakenIoResult['originalFilename'] = $thumbnail->getResource()->getFileName();
+            $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
             $savedBytes += $krakenIoResult['saved_bytes'];
 
             $this->resourceService->replaceLocalFile($krakenIoResult);
@@ -118,19 +122,6 @@ class KrakenCommandController extends CommandController
 
         $this->outputLine('');
         $this->outputLine('Saved ' . $savedBytes . ' bytes!');
-        if ($this->settings['liveOptimization'] !== true) {
-            $this->outputLine('Consider turning on ``liveOptimization`` in the settings now.');
-        }
-    }
-
-    /**
-     * Request optimized resource from Kraken and return result.
-     *
-     * @param Resource $originalResource
-     * @return string the response as JSON
-     */
-    private function requestOptimizedResource(Resource $originalResource): string
-    {
-        return $this->krakenService->requestOptimizedResource($originalResource, ['wait' => true]);
+        $this->outputLine('Consider turning on ``liveOptimization`` in the settings now.');
     }
 }

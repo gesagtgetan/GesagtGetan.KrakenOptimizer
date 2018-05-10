@@ -5,9 +5,6 @@ use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Aop\JoinPointInterface;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Resource\Resource;
-use TYPO3\Flow\Mvc\Routing\UriBuilder;
-use TYPO3\Flow\Core\Bootstrap;
-use TYPO3\Flow\Mvc\ActionRequest;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
 
 /**
@@ -22,21 +19,14 @@ class ProcessImageAspect
     protected $systemLogger;
 
     /**
-     * @Flow\Inject
-     * @var UriBuilder
+     * @var bool
      */
-    protected $uriBuilder;
+    protected $liveOptimization;
 
     /**
-     * @var Bootstrap
-     * @Flow\Inject
+     * @var string
      */
-    protected $bootstrap;
-
-    /**
-     * @var array
-     */
-    protected $settings;
+    protected $apiKey;
 
     /**
      * @Flow\Inject
@@ -44,86 +34,42 @@ class ProcessImageAspect
      */
     protected $krakenService;
 
+    /**
+     * @param array $settings
+     */
     public function injectSettings(array $settings)
     {
-        $this->settings = $settings;
+        $this->liveOptimization = $settings['liveOptimization'];
+        $this->apiKey = $settings['krakenOptions']['auth']['api_key'];
     }
 
     /**
      * @param JoinPointInterface $joinPoint
      * @Flow\Around ("method(TYPO3\Media\Domain\Service\ImageService->processImage())")
-     * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
      * @return array
      */
     public function retrieveAdjustedOriginalResource(JoinPointInterface $joinPoint): array
     {
         $originalResult = $joinPoint->getAdviceChain()->proceed($joinPoint);
 
-        if ($this->settings['liveOptimization'] !== true) {
-            return $originalResult;
-        }
+        /* @var $thumbnail Resource */
+        $thumbnail = $originalResult['resource'];
 
         /* @var $originalResource Resource */
-        $originalResource = $originalResult['resource'];
+        $originalResource = $joinPoint->getMethodArgument('originalResource');
 
-        try {
-            $this->requestOptimizedResource($originalResource);
-        } catch (\Exception $exception) {
-            $this->systemLogger->log('Was unable to request optimized resource for ' . $originalResource->getFilename() . ' from Kraken.', LOG_CRIT);
-            $this->systemLogger->log($exception->getMessage(), LOG_CRIT);
-
-            return $originalResult;
+        if ($this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource, $thumbnail) === true) {
+            try {
+                $this->krakenService->requestOptimizedResourceAsynchronously($thumbnail);
+                $this->systemLogger->log('Requesting optimized version for ' . $thumbnail->getFilename() . ' (' . $thumbnail->getSha1() . ')' .
+                    ' from Kraken. Actual replacement is done asynchronously via callback.', LOG_DEBUG);
+            } catch (\Exception $exception) {
+                $this->systemLogger->log('Was unable to request optimized resource for ' . $thumbnail->getFilename() . ' from Kraken.',
+                    LOG_CRIT);
+                $this->systemLogger->log($exception->getMessage(), LOG_CRIT);
+            }
         }
 
-        $this->systemLogger->log('Requesting optimized version for ' . $originalResource->getFilename() . ' (' . $originalResource->getSha1() . ')' .
-            ' from Kraken. Actual replacement is done asynchronously via callback.', LOG_DEBUG);
-
         return $originalResult;
-    }
-
-    /**
-     * Request optimized resource from Kraken and also define callback URL
-     * for asynchronous image replacement.
-     *
-     * @param Resource $originalResource
-     * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
-     */
-    private function requestOptimizedResource(Resource $originalResource)
-    {
-        $krakenOptions = [
-            'callback_url' => $this->generateUri(
-                'replaceLocalFile',
-                'Kraken',
-                'GesagtGetan.KrakenOptimizer',
-                [
-                    'originalFilename' => $originalResource->getFilename(),
-                    'verificationToken' =>
-                        password_hash($this->settings['krakenOptions']['auth']['api_key'], PASSWORD_BCRYPT, ['cost' => 4])
-                ]
-            )
-        ];
-
-        $this->krakenService->requestOptimizedResource($originalResource, $krakenOptions);
-    }
-
-    /**
-     * @param string $actionName
-     * @param string $controllerName
-     * @param string $packageKey
-     * @param array $controllerArguments
-     * @return string
-     * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
-     */
-    private function generateUri(string $actionName, string $controllerName, string $packageKey, array $controllerArguments = []): string
-    {
-        $urlBuilder = new UriBuilder();
-        $requestHandler = $this->bootstrap->getActiveRequestHandler();
-        $urlBuilder->setRequest(new ActionRequest($requestHandler->getHttpRequest()));
-        return $urlBuilder->reset()->setCreateAbsoluteUri(true)->uriFor(
-            $actionName,
-            $controllerArguments,
-            $controllerName,
-            $packageKey
-        );
     }
 }
