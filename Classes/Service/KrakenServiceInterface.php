@@ -29,4 +29,13 @@ interface KrakenServiceInterface
      */
     public function verifyToken(string $vericiationToken, string $filename): bool;
 
+    /**
+     * Check if flag is set to allow optimization of original resources that are too small
+     * or just the right size, so no thumbnail was generated.
+     *
+     * @param Resource $originalResource
+     * @param Resource $thumbnail
+     * @return bool
+     */
+    public function shouldOptimize(Resource $originalResource, Resource $thumnail): bool;
 }

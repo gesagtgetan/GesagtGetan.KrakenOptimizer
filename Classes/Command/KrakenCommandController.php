@@ -95,6 +95,10 @@ class KrakenCommandController extends CommandController
             $originalAssetResource = $thumbnail->getOriginalAsset()->getResource();
             $thumbnailResource = $thumbnail->getResource();
 
+            if ($thumbnailResource === null ||
+                $iteration < $offset ||
+                $this->krakenService->shouldOptimize($thumbnailResource, $originalAssetResource) === false
+            ) {
                 $this->output->progressAdvance(1);
                 $iteration++;
                 continue;

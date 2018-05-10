@@ -123,6 +123,25 @@ class KrakenService implements KrakenServiceInterface
     }
 
     /**
+     * Check if flag is set to allow optimization of original resources that are too small
+     * or just the right size, so no thumbnail was generated.
+     *
+     * @param Resource $originalResource
+     * @param Resource $thumbnail
+     * @return bool
+     */
+    public function shouldOptimize(Resource $originalResource, Resource $thumbnail): bool
+    {
+        if ($this->optimizeOriginalResource === false) {
+            if ($originalResource->getSha1() === $thumbnail->getSha1()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Creates the verification token for securing callback calls.
      *
      * @param string $filename

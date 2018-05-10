@@ -64,6 +64,24 @@ GesagtGetan:
 FLOW_CONTEXT=Production ./flow flow:cache:flush
 ```
 
+## Additional options
+
+### optimizeOriginalResource
+
+By enabling the `optimizeOriginalResource` flag, the original image will be replaced with an optimized version,
+if no thumbnail creation was necessary for a particular image.
+Neos will not create a thumbnail for an image, if the the necessary dimensions are equal or lower than the original image.
+
+By default we do not optimize original images. Make sure you have regular backups of your server, in case something
+goes wrong during optimization!
+
+####usage:
+```yaml
+GesagtGetan:
+  KrakenOptimizer:
+    optimizeOriginalResource: true
+```
+
 ## Troubleshooting and FAQ
 **Q: I already optimized my thumbnails before installing this plugin, but I'm unhappy with the result**
 
