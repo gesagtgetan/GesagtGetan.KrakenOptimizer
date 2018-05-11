@@ -74,7 +74,6 @@ class KrakenService implements KrakenServiceInterface
      * @param array $krakenOptions
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \TYPO3\Flow\Exception
      */
     public function requestOptimizedResource(Resource $thumbnail, array $krakenOptions = []): string
     {
@@ -103,6 +102,8 @@ class KrakenService implements KrakenServiceInterface
      * for asynchronous image replacement.
      *
      * @param Resource $thumbnail
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \TYPO3\Flow\Exception
      * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
     public function requestOptimizedResourceAsynchronously(Resource $thumbnail)

@@ -37,5 +37,5 @@ interface KrakenServiceInterface
      * @param Resource $thumbnail
      * @return bool
      */
-    public function shouldOptimize(Resource $originalResource, Resource $thumnail): bool;
+    public function shouldOptimize(Resource $originalResource, Resource $thumbnail): bool;
 }
