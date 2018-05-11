@@ -74,7 +74,6 @@ class KrakenService implements KrakenServiceInterface
      * @param array $krakenOptions
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Neos\Flow\Exception
      */
     public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptions = []): string
     {
@@ -103,6 +102,8 @@ class KrakenService implements KrakenServiceInterface
      * for asynchronous image replacement.
      *
      * @param PersistentResource $thumbnail
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Neos\Flow\Exception
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
     public function requestOptimizedResourceAsynchronously(PersistentResource $thumbnail)

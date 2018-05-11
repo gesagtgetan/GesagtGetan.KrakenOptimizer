@@ -32,16 +32,6 @@ class KrakenController extends ActionController
     protected $krakenService;
 
     /**
-     * @var array
-     */
-    protected $settings;
-
-    public function injectSettings(array $settings)
-    {
-        $this->settings = $settings;
-    }
-
-    /**
      * Replaces the local file within the file system with the optimized image delivered by Kraken.
      *
      * @throws \Neos\Flow\Exception

@@ -37,5 +37,5 @@ interface KrakenServiceInterface
      * @param PersistentResource $thumbnail
      * @return bool
      */
-    public function shouldOptimize(PersistentResource $originalResource, PersistentResource $thumnail): bool;
+    public function shouldOptimize(PersistentResource $originalResource, PersistentResource $thumbnail): bool;
 }
