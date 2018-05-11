@@ -88,10 +88,25 @@ class KrakenCommandController extends CommandController
         $this->output->progressStart($thumbnailCount);
         $savedBytes = 0;
         $iteration = 0;
+
+        if ($thumbnailCount === 0) {
+            $this->outputLine('No thumbnails present for optimization.');
+            exit();
+        }
+
         $answer = $this->output->askConfirmation('Send ' . ($thumbnailCount - $offset) . ' thumbnails to Kraken for optimization?');
 
         if ($answer === false) {
             exit();
+        }
+
+        // Warn user if `liveOptimization` is already active
+        if ($this->liveOptimization === true) {
+            $answer = $this->output->askConfirmation('`liveOptimization` is already activated. Some resources might be optimized twice! Proceed?');
+
+            if ($answer === false) {
+                exit();
+            }
         }
 
         foreach ($this->thumbnailRepository->iterate($iterator) as $thumbnail) {
@@ -129,6 +144,9 @@ class KrakenCommandController extends CommandController
 
         $this->outputLine('');
         $this->outputLine('Saved ' . $savedBytes . ' bytes!');
-        $this->outputLine('Consider turning on ``liveOptimization`` in the settings now.');
+
+        if ($this->liveOptimization === false) {
+            $this->outputLine('Consider turning on `liveOptimization` in the settings now.');
+        }
     }
 }
