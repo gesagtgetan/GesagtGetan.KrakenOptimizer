@@ -46,13 +46,16 @@ class KrakenCommandController extends CommandController
     protected $krakenService;
 
     /**
-     * @var array
+     * @var bool
      */
-    protected $settings;
+    protected $liveOptimization;
 
+    /**
+     * @param array $settings
+     */
     public function injectSettings(array $settings)
     {
-        $this->settings = $settings;
+        $this->liveOptimization = $settings['liveOptimization'];
     }
 
     /**
