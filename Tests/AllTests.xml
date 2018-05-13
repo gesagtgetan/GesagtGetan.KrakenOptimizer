@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<phpunit
+        beStrictAboutChangesToGlobalState="true"
+        beStrictAboutTestsThatDoNotTestAnything="true"
+        beStrictAboutOutputDuringTests="true"
+        bootstrap="../../../../Build/BuildEssentials/PhpUnit/FunctionalTestBootstrap.php"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        timeoutForSmallTests="0">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>./Unit</directory>
+        </testsuite>
+        <testsuite name="functional">
+            <directory>./Functional</directory>
+        </testsuite>
+    </testsuites>
+    <logging>
+        <log type="junit" target="./Reports/AllTests.xml" logIncompleteSkipped="false"/>
+        <log type="coverage-html" target="./Reports/Coverage/AllTests.html" charset="UTF-8" yui="true" highlight="true" lowUpperBound="35" highLowerBound="70" />
+    </logging>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">../Classes</directory>
+        </whitelist>
+    </filter>
+    <php>
+        <ini name="date.timezone" value="Europe/Berlin" />
+        <env name="FLOW_REWRITEURLS" value="1"/>
+    </php>
+</phpunit>
