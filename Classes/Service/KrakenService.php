@@ -102,6 +102,7 @@ class KrakenService implements KrakenServiceInterface
      * for asynchronous image replacement.
      *
      * @param Resource $thumbnail
+     * @return string the response as JSON containing the Id of the async call
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \TYPO3\Flow\Exception
      * @throws \TYPO3\Flow\Mvc\Routing\Exception\MissingActionNameException
@@ -120,7 +121,7 @@ class KrakenService implements KrakenServiceInterface
             )
         ];
 
-        $this->requestOptimizedResource($thumbnail, $krakenOptions);
+        return $this->requestOptimizedResource($thumbnail, $krakenOptions);
     }
 
     /**
