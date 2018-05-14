@@ -31,6 +31,7 @@ class KrakenServiceTest extends FunctionalTestCase
     public function setUp()
     {
         parent::setUp();
+
         $this->krakenService = $this->objectManager->get(KrakenService::class);
         $this->resourceManager = $this->objectManager->get(ResourceManager::class);
         $svgContent = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="200"> <text x="0" y="15" fill="red">Test SVG</text></svg>';

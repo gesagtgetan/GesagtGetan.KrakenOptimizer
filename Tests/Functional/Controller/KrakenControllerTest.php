@@ -18,6 +18,7 @@ class KrakenControllerTest extends FunctionalTestCase
     public function setUp()
     {
         parent::setUp();
+
         $this->krakenService = $this->objectManager->get(KrakenService::class);
     }
 
