@@ -8,7 +8,6 @@ use Neos\Media\Domain\Repository\ThumbnailRepository;
 use Neos\Media\Domain\Service\ThumbnailService;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
-use Neos\Flow\ResourceManagement\PersistentResource;
 
 /**
  * @Flow\Scope("singleton")

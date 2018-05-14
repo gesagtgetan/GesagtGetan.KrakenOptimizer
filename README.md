@@ -2,8 +2,6 @@
 GesagtGetan.KrakenOptimizer
 ---------------------------
 
-**!WARNING! We are currently field testing this package on a live site, do not use this plugin in your project until further notice**
-
 Image optimizer for Neos utilizing the Kraken API
 
 | Version | Neos     |
