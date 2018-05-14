@@ -8,7 +8,6 @@ use TYPO3\Media\Domain\Repository\ThumbnailRepository;
 use TYPO3\Media\Domain\Service\ThumbnailService;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
-use TYPO3\Flow\Resource\Resource;
 
 /**
  * @Flow\Scope("singleton")
