@@ -34,9 +34,9 @@ class KrakenServiceTest extends UnitTestCase
         $this->inject($krakenService, 'optimizeOriginalResource', true);
 
         $originalResource = $this->createMock(PersistentResource::class);
-        $originalResource->expects($this->once())->method('getSha1')->willReturn("e6f36746ccba42c288acf906e636bb278eaeb7e8");
+        $originalResource->expects($this->never())->method('getSha1')->willReturn("e6f36746ccba42c288acf906e636bb278eaeb7e8");
         $thumbnail = $this->createMock(PersistentResource::class);
-        $thumbnail->expects($this->once())->method('getSha1')->willReturn("e6f36746ccba42c288acf906e636bb278eaeb7e8");
+        $thumbnail->expects($this->never())->method('getSha1')->willReturn("e6f36746ccba42c288acf906e636bb278eaeb7e8");
 
         $result = $krakenService->shouldOptimize($originalResource, $thumbnail);
 
