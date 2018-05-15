@@ -5,7 +5,7 @@ use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use GuzzleHttp\Client;
 use TYPO3\Flow\Utility;
-use TYPO3\Eel\Exception;
+use TYPO3\Flow\Exception;
 
 /**
  * @Flow\Scope("singleton")
@@ -47,11 +47,11 @@ class ResourceService implements ResourceServiceInterface
         $originalFilename = isset($krakenIoResult['originalFilename']) ? $krakenIoResult['originalFilename'] : '';
 
         if (!isset($krakenIoResult['file_name']) || !self::isSha1($krakenIoResult['file_name'])) {
-            throw new \TYPO3\Flow\Exception('Invalid or no file name was returned for resource ' . '(' . $originalFilename .')' . ' by Kraken API', 1526371181);
+            throw new Exception('Invalid or no file name was returned for resource ' . '(' . $originalFilename .')' . ' by Kraken API', 1526371181);
         }
 
         if (!isset($krakenIoResult['kraked_url'])) {
-            throw new \TYPO3\Flow\Exception('No URL to optimized resource present in response from Kraken API for ' . '(' . $originalFilename .')', 1526371191);
+            throw new Exception('No URL to optimized resource present in response from Kraken API for ' . '(' . $originalFilename .')', 1526371191);
         }
 
         // represents SHA1 hash
