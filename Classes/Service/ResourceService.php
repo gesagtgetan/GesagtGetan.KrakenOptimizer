@@ -4,6 +4,9 @@ namespace GesagtGetan\KrakenOptimizer\Service;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Log\SystemLoggerInterface;
 use GuzzleHttp\Client;
+use Neos\Utility;
+use Neos\Flow\Utility\Environment;
+use Neos\Flow\Exception;
 
 /**
  * @Flow\Scope("singleton")
@@ -23,22 +26,37 @@ class ResourceService implements ResourceServiceInterface
     protected $guzzleHttpClient;
 
     /**
+     * @Flow\Inject
+     * @var Environment
+     */
+    protected $environment;
+
+    const TEMP_FOLDER_NAME = 'OptimizedImagesTemp';
+
+    /**
      * Replaces the local file within the file system with the optimized image delivered by Kraken.
      *
+     * Copies the optimized file to a temporary folder first, to prevent possible racing conditions when the service
+     * responds very fast.
+     *
      * @param array $krakenIoResult
+     * @throws \Neos\Flow\Exception
      */
     public function replaceLocalFile(array $krakenIoResult)
     {
-        if (!isset($krakenIoResult['file_name']) || !self::isSha1($krakenIoResult['file_name'])) {
-            $this->systemLogger->log('Invalid file name was returned for resource by kraken.io API', LOG_CRIT);
+        // originalFilename is unimportant, only used for better debug message
+        $originalFilename = isset($krakenIoResult['originalFilename']) ? $krakenIoResult['originalFilename'] : '';
 
-            return;
+        if (!isset($krakenIoResult['file_name']) || !self::isSha1($krakenIoResult['file_name'])) {
+            throw new Exception('Invalid or no file name was returned for resource ' . '(' . $originalFilename .')' . ' by Kraken API', 1526371181);
+        }
+
+        if (!isset($krakenIoResult['kraked_url'])) {
+            throw new Exception('No URL to optimized resource present in response from Kraken API for ' . '(' . $originalFilename .')', 1526371191);
         }
 
         // represents SHA1 hash
         $fileName = $krakenIoResult['file_name'];
-        // originalFilename is unimportant, only used for better debug message
-        $originalFilename = isset($krakenIoResult['originalFilename']) ? $krakenIoResult['originalFilename'] : '';
 
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
             $this->systemLogger->log('No optimization necessary for file ' . $originalFilename . ' (' . $fileName .')', LOG_DEBUG);
@@ -48,15 +66,18 @@ class ResourceService implements ResourceServiceInterface
 
         try {
             $pathAndFilename = self::getFilePathForSha1($fileName);
-            $resource = fopen($pathAndFilename, 'w');
+            $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
+            Utility\Files::createDirectoryRecursively($temporaryPath);
+            $temporaryPathAndFilename = $temporaryPath . $fileName;
 
-            // download image from Kraken and override local thumbnail
-            $this->guzzleHttpClient->get($krakenIoResult['kraked_url'], ['sink' => $resource]);
+            $this->guzzleHttpClient->get($krakenIoResult['kraked_url'], ['sink' => $temporaryPathAndFilename]);
+
+            rename($temporaryPathAndFilename, $pathAndFilename);
 
             $this->systemLogger->log('Replaced ' . $originalFilename . ' (' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
                 $krakenIoResult['saved_bytes'] . ' bytes!', LOG_DEBUG);
-        } catch (\Exception  $e) {
-            $this->systemLogger->log('Could not retrieve and / or write image from Kraken for ' . $fileName, LOG_CRIT);
+        } catch (\Exception $e) {
+            throw new Exception('Could not retrieve and / or write image from Kraken for ' . $fileName . '. ' . $e->getMessage(), 1526327172);
         }
     }
 
@@ -68,7 +89,7 @@ class ResourceService implements ResourceServiceInterface
      */
     private static function getFilePathForSha1(string $sha1): string
     {
-        return FLOW_PATH_DATA .'Persistent/Resources/' . $sha1[0] . '/' . $sha1[1] . '/' . $sha1[2] . '/' . $sha1[3] . '/' . $sha1;
+        return FLOW_PATH_DATA . 'Persistent/Resources/' . $sha1[0] . '/' . $sha1[1] . '/' . $sha1[2] . '/' . $sha1[3] . '/' . $sha1;
     }
 
     /**
