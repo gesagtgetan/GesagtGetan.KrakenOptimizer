@@ -54,21 +54,4 @@ class KrakenControllerTest extends FunctionalTestCase
         $response = $this->browser->request('http://localhost' . self::REPLACE_ACTION_URI, 'POST', $payload);
         $this->assertEquals('1524665601', $response->getHeader('X-Flow-ExceptionCode'));
     }
-
-    /**
-     * No exception should be thrown if payload passes checks.
-     *
-     * @test
-     */
-    public function controllerShouldReturnNullIfPayloadIsValid()
-    {
-        $payload = [
-            'success' => 'true',
-            'file_name' => 'e6f36746ccba42c288acf906e636bb278eaeb7e8'
-        ];
-        $payload['verificationToken'] = $this->krakenService->createToken($payload['file_name']);
-
-        $response = $this->browser->request('http://localhost' . self::REPLACE_ACTION_URI, 'POST', $payload);
-        $this->assertEquals('null', $response->getContent());
-    }
 }
