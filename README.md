@@ -45,9 +45,8 @@ In case something goes wrong during the initial optimization, it's possible to r
 For example `./flow kraken:optimize --offset 300` will skip the first 299 thumbnails.    
 
 #### Warning:
-Executing this command multiple times will send potentially already optimized images to the Kraken API and thus will still
-count towards your API quota and can lead to "over optimized" images when running lossy optimizations multiple times. 
-
+> ⚠ Executing this command multiple times will send potentially already optimized images to the Kraken API and thus will still
+    count towards your API quota and can lead to "over optimized" images when running lossy optimizations multiple times.
 
 2. Now is the perfect time to activate live optimizations. All generated thumbnails after the initial optimiziation
 will be send to kraken for improvement when this flag is set:
@@ -56,6 +55,8 @@ GesagtGetan:
   KrakenOptimizer:
     liveOptimization: true
 ```
+
+> ♻ Don't forget to flush your caches after adding the flag in a production environment.
 
 3. Delete Production cache
 ```
@@ -73,7 +74,7 @@ Neos will not create a thumbnail for an image, if the the necessary dimensions a
 By default we do not optimize original images. Make sure you have regular backups of your server, in case something
 goes wrong during optimization!
 
-####usage:
+#### Usage:
 ```yaml
 GesagtGetan:
   KrakenOptimizer:
