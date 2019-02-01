@@ -54,14 +54,9 @@ class KrakenService implements KrakenServiceInterface
 
     /**
      * @param array $settings
-     * @throws \Neos\Flow\Exception
      */
     public function injectSettings(array $settings)
     {
-        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
-            throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
-        }
-
         $this->krakenOptions = $settings['krakenOptions'];
         $this->apiKey = $settings['krakenOptions']['auth']['api_key'];
         $this->optimizeOriginalResource = $settings['optimizeOriginalResource'];
@@ -74,9 +69,14 @@ class KrakenService implements KrakenServiceInterface
      * @param array $krakenOptions
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Neos\Flow\Exception
      */
     public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptions = []): string
     {
+        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
+            throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
+        }
+
         $krakenOptions = array_merge($krakenOptions, $this->krakenOptions);
 
         return $this->guzzleHttpClient->request(
@@ -107,8 +107,12 @@ class KrakenService implements KrakenServiceInterface
      * @throws \Neos\Flow\Exception
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
-    public function requestOptimizedResourceAsynchronously(PersistentResource $thumbnail)
+    public function requestOptimizedResourceAsynchronously(PersistentResource $thumbnail): string
     {
+        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
+            throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
+        }
+
         $krakenOptions = [
             'callback_url' => $this->generateUri(
                 'replaceLocalFile',
