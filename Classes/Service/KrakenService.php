@@ -54,14 +54,9 @@ class KrakenService implements KrakenServiceInterface
 
     /**
      * @param array $settings
-     * @throws \TYPO3\Flow\Exception
      */
     public function injectSettings(array $settings)
     {
-        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
-            throw new \TYPO3\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
-        }
-
         $this->krakenOptions = $settings['krakenOptions'];
         $this->apiKey = $settings['krakenOptions']['auth']['api_key'];
         $this->optimizeOriginalResource = $settings['optimizeOriginalResource'];
@@ -74,9 +69,14 @@ class KrakenService implements KrakenServiceInterface
      * @param array $krakenOptions
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \TYPO3\Flow\Exception
      */
     public function requestOptimizedResource(Resource $thumbnail, array $krakenOptions = []): string
     {
+        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
+            throw new \TYPO3\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
+        }
+
         $krakenOptions = array_merge($krakenOptions, $this->krakenOptions);
 
         return $this->guzzleHttpClient->request(
@@ -109,6 +109,10 @@ class KrakenService implements KrakenServiceInterface
      */
     public function requestOptimizedResourceAsynchronously(Resource $thumbnail)
     {
+        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
+            throw new \TYPO3\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
+        }
+
         $krakenOptions = [
             'callback_url' => $this->generateUri(
                 'replaceLocalFile',
