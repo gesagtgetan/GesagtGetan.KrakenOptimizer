@@ -73,7 +73,7 @@ class KrakenService implements KrakenServiceInterface
      */
     public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptions = []): string
     {
-        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
+        if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
             throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
         }
 
@@ -109,7 +109,7 @@ class KrakenService implements KrakenServiceInterface
      */
     public function requestOptimizedResourceAsynchronously(PersistentResource $thumbnail): string
     {
-        if (!isset($settings['krakenOptions']['auth']['api_key']) || !isset($settings['krakenOptions']['auth']['api_secret'])) {
+        if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
             throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
         }
 
