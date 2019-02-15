@@ -4,7 +4,7 @@
   defaults:
     '@package': 'GesagtGetan.KrakenOptimizer'
     '@controller': 'Kraken'
-    '@action': 'replaceLocalFile'
+    '@action': 'replaceThumbnailResource'
   toLowerCase: false
   appendExceedingArguments: true
-  httpMethods: ['POST']
+  # httpMethods: ['POST']

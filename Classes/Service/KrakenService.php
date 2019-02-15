@@ -1,8 +1,11 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
+use Neos\Flow\Persistence\Generic\PersistenceManager;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use GuzzleHttp\Psr7;
 use Neos\Flow\Mvc\Routing\UriBuilder;
@@ -51,6 +54,18 @@ class KrakenService implements KrakenServiceInterface
      * @var bool
      */
     protected $optimizeOriginalResource;
+
+    /**
+     * @Flow\Inject
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+
+    /**
+     * @Flow\Inject
+     * @var PersistenceManagerInterface
+     */
+    protected $persistenceManager;
 
     /**
      * @param array $settings
@@ -104,13 +119,13 @@ class KrakenService implements KrakenServiceInterface
      * Request optimized resource from Kraken and also define callback URL
      * for asynchronous image replacement.
      *
-     * @param PersistentResource $thumbnail
+     * @param PersistentResource $resource
      * @return string the response as JSON containing the Id of the async call
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Neos\Flow\Exception
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
-    public function requestOptimizedResourceAsynchronously(PersistentResource $thumbnail): string
+    public function requestOptimizedResourceAsynchronously(PersistentResource $resource): string
     {
         if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
             throw new \Neos\Flow\Exception(
@@ -121,17 +136,18 @@ class KrakenService implements KrakenServiceInterface
 
         $krakenOptions = [
             'callback_url' => $this->generateUri(
-                'replaceLocalFile',
+                'replaceThumbnailResource',
                 'Kraken',
                 'GesagtGetan.KrakenOptimizer',
                 [
-                    'originalFilename' => $thumbnail->getFilename(),
-                    'verificationToken' => $this->createToken($thumbnail->getSha1())
+                    'originalFilename' => $resource->getFilename(),
+                    'resourceIdentifier' => $this->persistenceManager->getIdentifierByObject($resource),
+                    'verificationToken' => $this->createToken($resource->getSha1())
                 ]
             )
         ];
 
-        return $this->requestOptimizedResource($thumbnail, $krakenOptions);
+        return $this->requestOptimizedResource($resource, $krakenOptions);
     }
 
     /**

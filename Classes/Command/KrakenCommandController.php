@@ -4,6 +4,8 @@ namespace GesagtGetan\KrakenOptimizer\Command;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
 use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\ResourceManagement\PersistentResource;
+use Neos\Media\Domain\Model\Thumbnail;
 use Neos\Media\Domain\Repository\ThumbnailRepository;
 use Neos\Media\Domain\Service\ThumbnailService;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
@@ -114,8 +116,10 @@ class KrakenCommandController extends CommandController
             }
         }
 
+        /** @var Thumbnail $thumbnail */
         foreach ($this->thumbnailRepository->iterate($iterator) as $thumbnail) {
             $originalAssetResource = $thumbnail->getOriginalAsset()->getResource();
+            /** @var PersistentResource $thumbnailResource */
             $thumbnailResource = $thumbnail->getResource();
 
             if ($thumbnailResource === null ||
@@ -143,7 +147,8 @@ class KrakenCommandController extends CommandController
             $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
             $savedBytes += $krakenIoResult['saved_bytes'];
 
-            $this->resourceService->replaceLocalFile($krakenIoResult);
+            $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+
             $this->output->progressAdvance(1);
             $iteration++;
         }
