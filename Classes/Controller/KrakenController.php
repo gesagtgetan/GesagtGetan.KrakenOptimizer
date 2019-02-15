@@ -90,10 +90,10 @@ class KrakenController extends ActionController
             throw new \Neos\Flow\Exception('Filename missing in Kraken callback payload', 1524665605);
         }
 
-        if (!isset($krakenIoResult['verificationToken']) ||
-            $this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['originalFilename']) === false) {
-            throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
-        }
+//        if (!isset($krakenIoResult['verificationToken']) ||
+//            $this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['originalFilename']) === false) {
+//            throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
+//        }
 
         // Get thumbnail identifier
         $resourceIdentifier = $this->request->getArgument('resourceIdentifier');
