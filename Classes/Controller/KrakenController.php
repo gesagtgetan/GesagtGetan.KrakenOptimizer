@@ -80,7 +80,7 @@ class KrakenController extends ActionController
      */
     public function replaceThumbnailResourceAction()
     {
-        $krakenIoResult = $this->request->getMainRequest()->getHttpRequest()->getArguments();
+        $krakenIoResult = $this->request->getArguments();
 
         if (!isset($krakenIoResult['success']) || $krakenIoResult['success'] !== 'true') {
             throw new \Neos\Flow\Exception('Kraken was unable to optimize resource', 1524665608);
