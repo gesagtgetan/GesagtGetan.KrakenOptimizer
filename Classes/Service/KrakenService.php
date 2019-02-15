@@ -142,7 +142,7 @@ class KrakenService implements KrakenServiceInterface
                 [
                     'originalFilename' => $resource->getFilename(),
                     'resourceIdentifier' => $this->persistenceManager->getIdentifierByObject($resource),
-                    'verificationToken' => $this->createToken($resource->getSha1())
+                    'verificationToken' => $this->createToken($resource->getFilename())
                 ]
             )
         ];
