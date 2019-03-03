@@ -7,4 +7,4 @@
     '@action': 'replaceThumbnailResource'
   toLowerCase: false
   appendExceedingArguments: true
-  # httpMethods: ['POST']
+  httpMethods: ['POST']

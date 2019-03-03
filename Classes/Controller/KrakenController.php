@@ -82,6 +82,19 @@ class KrakenController extends ActionController
     {
         $krakenIoResult = $this->request->getArguments();
 
+        if($this->request->hasArgument('mock')) {
+            $krakenIoResult = array_merge($krakenIoResult, [
+                'success' => 'true',
+                'file_name' => 'stream',
+                'kraked_url' => 'https://dl.kraken.io/api/01/a7/92/8570b2e1fb33232caea83921b5/c50c2b693bc8aa21b4c05814b3ead18ecb865eca',
+                "original_size" => 324520,
+                "kraked_size" => 165358,
+                "saved_bytes" => 159162
+            ]);
+        }
+
+        \Neos\Flow\var_dump($krakenIoResult);
+
         if (!isset($krakenIoResult['success']) || $krakenIoResult['success'] !== 'true') {
             throw new \Neos\Flow\Exception('Kraken was unable to optimize resource', 1524665608);
         }
@@ -90,17 +103,19 @@ class KrakenController extends ActionController
             throw new \Neos\Flow\Exception('Filename missing in Kraken callback payload', 1524665605);
         }
 
-//        if (!isset($krakenIoResult['verificationToken']) ||
-//            $this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['originalFilename']) === false) {
-//            throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
-//        }
+        if (!isset($krakenIoResult['verificationToken']) ||
+            $this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['originalFilename']) === false) {
+            throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
+        }
 
         // Get thumbnail identifier
         $resourceIdentifier = $this->request->getArgument('resourceIdentifier');
         $query = $this->entityManager->createQuery('SELECT t FROM Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :resource');
         $query->setParameter('resource', $resourceIdentifier);
         $query->setMaxResults(1);
-        $thumbnail = $query->getOneOrNullResult();
+        $thumbnail = $query->getSingleResult();
+
+        $this->logger->debug('Found thumbnail for resource identifier', ['thumbnail' => $thumbnail, 'resource' => $resourceIdentifier]);
 
         $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
     }

@@ -5,6 +5,7 @@ use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Log\SystemLoggerInterface;
 use GuzzleHttp\Client;
 use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Fusion\Core\Cache\ContentCache;
 use Neos\Media\Domain\Model\Thumbnail;
 use Neos\Media\Domain\Repository\ThumbnailRepository;
 use Neos\Utility;
@@ -45,6 +46,12 @@ class ResourceService implements ResourceServiceInterface
      * @var ResourceManager
      */
     protected $resourceManager;
+
+    /**
+     * @Flow\Inject
+     * @var ContentCache
+     */
+    protected $contentCache;
 
     const TEMP_FOLDER_NAME = 'OptimizedImagesTemp';
 
@@ -149,10 +156,14 @@ class ResourceService implements ResourceServiceInterface
 
             $this->guzzleHttpClient->get($krakenIoResult['kraked_url'], ['sink' => $temporaryPathAndFilename]);
 
+            $oldResource = $thumbnail->getResource();
             $resource = $this->resourceManager->importResource($temporaryPathAndFilename);
             $thumbnail->setResource($resource);
 
             $this->thumbnailRepository->update($thumbnail);
+
+            $this->resourceManager->deleteResource($oldResource);
+            $this->contentCache->flush();
 
             $this->systemLogger->log('Replaced ' . $originalFilename . ' (' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
                 $krakenIoResult['saved_bytes'] . ' bytes!', LOG_DEBUG);
