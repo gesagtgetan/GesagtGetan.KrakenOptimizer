@@ -3,6 +3,7 @@ namespace GesagtGetan\KrakenOptimizer\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Exception;
 use Neos\Flow\Mvc\Controller\ActionController;
 use Neos\Flow\Mvc\View\JsonView;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
@@ -96,17 +97,20 @@ class KrakenController extends ActionController
         }
 
         // Get thumbnail identifier
-        $resourceIdentifier = $this->request->getArgument('resourceIdentifier');
+        $resourceIdentifier = $krakenIoResult['resourceIdentifier'];
         $query = $this->entityManager->createQuery('SELECT t FROM Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :resource');
         $query->setParameter('resource', $resourceIdentifier);
         $query->setMaxResults(1);
-        $thumbnail = $query->getSingleResult();
 
-        if($thumbnail instanceof Thumbnail) {
-            $this->logger->debug(sprintf('Found thumbnail for resource identifier %s', $resourceIdentifier),
-                ['thumbnail' => $thumbnail]);
-            $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
-        } else {
+        try {
+            $thumbnail = $query->getOneOrNullResult();
+
+            if($thumbnail instanceof Thumbnail) {
+                $this->logger->debug(sprintf('Found thumbnail for resource identifier %s', $resourceIdentifier),
+                    ['thumbnail' => $thumbnail]);
+                $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+            }
+        } catch(\Exception $e) {
             $this->logger->debug(sprintf('Could not find a thumbnail object for resource identifier %s', $resourceIdentifier));
         }
     }

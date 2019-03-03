@@ -3,9 +3,11 @@ namespace GesagtGetan\KrakenOptimizer\Aspect;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Aop\JoinPointInterface;
-use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
+use Neos\Media\Domain\Model\Thumbnail;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Flow\Aspect
@@ -14,7 +16,7 @@ class ProcessImageAspect
 {
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var LoggerInterface
      */
     protected $systemLogger;
 
@@ -35,6 +37,12 @@ class ProcessImageAspect
     protected $krakenService;
 
     /**
+     * @Flow\Inject
+     * @var PersistenceManagerInterface
+     */
+    protected $persistenceManager;
+
+    /**
      * @param array $settings
      */
     public function injectSettings(array $settings)
@@ -45,38 +53,32 @@ class ProcessImageAspect
 
     /**
      * @param JoinPointInterface $joinPoint
-     * @Flow\Around ("method(Neos\Media\Domain\Service\ImageService->processImage())")
+     * @Flow\AfterReturning ("method(Neos\Media\Domain\Service\ThumbnailService->getThumbnail())")
      * @return array
      */
     public function retrieveAdjustedOriginalResource(JoinPointInterface $joinPoint): array
     {
-        $originalResult = $joinPoint->getAdviceChain()->proceed($joinPoint);
+        /** @var Thumbnail $thumbnail */
+        $thumbnail = $joinPoint->getResult();
 
-        /* @var $thumbnail PersistentResource */
-        $thumbnail = $originalResult['resource'];
+        if($this->persistenceManager->isNewObject($thumbnail)) {
 
-        /* @var $originalResource PersistentResource */
-        $originalResource = $joinPoint->getMethodArgument('originalResource');
+            /* @var $thumbnailResource PersistentResource */
+            $thumbnailResource = $thumbnail->getResource();
 
-        if ($this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource, $thumbnail)) {
-            try {
-                $this->krakenService->requestOptimizedResourceAsynchronously($thumbnail);
-                $this->systemLogger->log(
-                    'Requesting optimized version for ' . $thumbnail->getFilename()
-                    . ' (' . $thumbnail->getSha1() . ')' .
-                    ' from Kraken. Actual replacement is done asynchronously via callback.',
-                    LOG_DEBUG
-                );
-            } catch (\Exception $exception) {
-                $this->systemLogger->log(
-                    'Was unable to request optimized resource for '
-                    . $thumbnail->getFilename() . ' from Kraken.',
-                    LOG_CRIT
-                );
-                $this->systemLogger->log($exception->getMessage(), LOG_CRIT);
+            /* @var $originalResource PersistentResource */
+            $originalResource = $thumbnail->getOriginalAsset()->getResource();
+
+            if ($this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource,$thumbnailResource)) {
+                try {
+                    $this->krakenService->requestOptimizedResourceAsynchronously($thumbnailResource);
+                    $this->systemLogger->debug('Requesting optimized version for ' . $thumbnailResource->getFilename() . ' (' . $thumbnailResource->getSha1() . ')' .
+                        ' from Kraken. Actual replacement is done asynchronously via callback.');
+                } catch (\Exception $exception) {
+                    $this->systemLogger->critical('Was unable to request optimized resource for ' . $thumbnailResource->getFilename() . ' from Kraken.');
+                    $this->systemLogger->critical($exception->getMessage());
+                }
             }
         }
-
-        return $originalResult;
     }
 }
