@@ -82,19 +82,6 @@ class KrakenController extends ActionController
     {
         $krakenIoResult = $this->request->getArguments();
 
-        if($this->request->hasArgument('mock')) {
-            $krakenIoResult = array_merge($krakenIoResult, [
-                'success' => 'true',
-                'file_name' => 'stream',
-                'kraked_url' => 'https://dl.kraken.io/api/01/a7/92/8570b2e1fb33232caea83921b5/c50c2b693bc8aa21b4c05814b3ead18ecb865eca',
-                "original_size" => 324520,
-                "kraked_size" => 165358,
-                "saved_bytes" => 159162
-            ]);
-        }
-
-        \Neos\Flow\var_dump($krakenIoResult);
-
         if (!isset($krakenIoResult['success']) || $krakenIoResult['success'] !== 'true') {
             throw new \Neos\Flow\Exception('Kraken was unable to optimize resource', 1524665608);
         }
@@ -115,8 +102,12 @@ class KrakenController extends ActionController
         $query->setMaxResults(1);
         $thumbnail = $query->getSingleResult();
 
-        $this->logger->debug('Found thumbnail for resource identifier', ['thumbnail' => $thumbnail, 'resource' => $resourceIdentifier]);
-
-        $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+        if($thumbnail instanceof Thumbnail) {
+            $this->logger->debug(sprintf('Found thumbnail for resource identifier %s', $resourceIdentifier),
+                ['thumbnail' => $thumbnail]);
+            $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+        } else {
+            $this->logger->debug(sprintf('Could not find a thumbnail object for resource identifier %s', $resourceIdentifier));
+        }
     }
 }
