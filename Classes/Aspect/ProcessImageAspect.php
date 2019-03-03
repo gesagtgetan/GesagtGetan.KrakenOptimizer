@@ -54,9 +54,9 @@ class ProcessImageAspect
     /**
      * @param JoinPointInterface $joinPoint
      * @Flow\AfterReturning ("method(Neos\Media\Domain\Service\ThumbnailService->getThumbnail())")
-     * @return array
+     * @return void
      */
-    public function retrieveAdjustedOriginalResource(JoinPointInterface $joinPoint): array
+    public function retrieveAdjustedOriginalResource(JoinPointInterface $joinPoint)
     {
         /** @var Thumbnail $thumbnail */
         $thumbnail = $joinPoint->getResult();
