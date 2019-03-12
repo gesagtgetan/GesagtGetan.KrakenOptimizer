@@ -62,8 +62,8 @@ class ProcessThumbnailSlot {
         /* @var $originalResource PersistentResource */
         $originalResource = $thumbnail->getOriginalAsset()->getResource();
 
-//        if ($thumbnailResource && $this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource,
-//               $thumbnailResource) === true) {
+        if ($thumbnailResource && $this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource,
+               $thumbnailResource) === true) {
             try {
                 $this->krakenService->requestOptimizedResourceAsynchronously($thumbnailResource);
                 $this->systemLogger->debug('Requesting optimized version for ' . $thumbnailResource->getFilename() . ' (' . $thumbnailResource->getSha1() . ')' .
@@ -72,6 +72,6 @@ class ProcessThumbnailSlot {
                 $this->systemLogger->critical('Was unable to request optimized resource for ' . $thumbnailResource->getFilename() . ' from Kraken.');
                 $this->systemLogger->critical($exception->getMessage());
             }
-//        }
+        }
     }
 }
