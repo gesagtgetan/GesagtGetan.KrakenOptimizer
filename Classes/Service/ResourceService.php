@@ -14,6 +14,7 @@ use Neos\Flow\ResourceManagement\ResourceManager;
 use Neos\Fusion\Core\Cache\ContentCache;
 use Neos\Media\Domain\Model\Thumbnail;
 use Neos\Media\Domain\Repository\ThumbnailRepository;
+use Neos\Media\Domain\Service\AssetService;
 use Neos\Utility;
 use Neos\Flow\Utility\Environment;
 use Neos\Flow\Exception;
@@ -84,6 +85,12 @@ class ResourceService implements ResourceServiceInterface
      * @var PersistenceManagerInterface
      */
     protected $persistenceManager;
+
+    /**
+     * @Flow\Inject
+     * @var AssetService
+     */
+    protected $assetService;
 
     const TEMP_FOLDER_NAME = 'OptimizedImagesTemp';
 
@@ -186,6 +193,7 @@ class ResourceService implements ResourceServiceInterface
             $resource = $this->resourceManager->importResource($temporaryPathAndFilename);
             $thumbnail->setResource($resource);
             $this->thumbnailRepository->update($thumbnail);
+            $this->assetService->emitAssetResourceReplaced($thumbnail->getOriginalAsset());
 
             // Look for other thumbnails with the same resource
             $otherAffectedThumbnailsQuery = $this->entityManager->createQuery('SELECT t FROM \Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :originalResource');
@@ -196,16 +204,15 @@ class ResourceService implements ResourceServiceInterface
             foreach($otherAffectedThumbnails as $affectedThumbnail) {
                 $affectedThumbnail->setResource($resource);
                 $this->thumbnailRepository->update($affectedThumbnail);
+                $this->assetService->emitAssetResourceReplaced($affectedThumbnail->getOriginalAsset());
             }
 
             // Add redirect from the old resource path to the new resource path
-            $this->addRedirect($originalResource, $resource);
+            // TODO doesn't work with foreign url's like Google Cloud Storage
+            // $this->addRedirect($originalResource, $resource);
 
             // Remove the old resource
             $this->resourceManager->deleteResource($originalResource);
-
-            // TODO: this can be removed
-            // $this->contentCache->flush();
 
             $this->systemLogger->debug('Replaced ' . $originalFilename . ' (' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
                 $krakenIoResult['saved_bytes'] . ' bytes!');
