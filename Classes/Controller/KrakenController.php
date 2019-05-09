@@ -50,7 +50,7 @@ class KrakenController extends ActionController
         }
 
         if (!isset($krakenIoResult['verificationToken']) ||
-            $this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['file_name']) === false) {
+            !$this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['file_name'])) {
             throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
         }
 

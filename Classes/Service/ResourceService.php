@@ -48,18 +48,29 @@ class ResourceService implements ResourceServiceInterface
         $originalFilename = isset($krakenIoResult['originalFilename']) ? $krakenIoResult['originalFilename'] : '';
 
         if (!isset($krakenIoResult['file_name']) || !self::isSha1($krakenIoResult['file_name'])) {
-            throw new Exception('Invalid or no file name was returned for resource ' . '(' . $originalFilename .')' . ' by Kraken API', 1526371181);
+            throw new Exception(
+                'Invalid or no file name was returned for resource ' . '('
+                . $originalFilename .')' . ' by Kraken API',
+                1526371181
+            );
         }
 
         if (!isset($krakenIoResult['kraked_url'])) {
-            throw new Exception('No URL to optimized resource present in response from Kraken API for ' . '(' . $originalFilename .')', 1526371191);
+            throw new Exception(
+                'No URL to optimized resource present in response from Kraken API for ' .
+                '(' . $originalFilename .')',
+                1526371191
+            );
         }
 
         // represents SHA1 hash
         $fileName = $krakenIoResult['file_name'];
 
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
-            $this->systemLogger->log('No optimization necessary for file ' . $originalFilename . ' (' . $fileName .')', LOG_DEBUG);
+            $this->systemLogger->log(
+                'No optimization necessary for file ' . $originalFilename . ' (' . $fileName .')',
+                LOG_DEBUG
+            );
 
             return;
         }
@@ -74,10 +85,16 @@ class ResourceService implements ResourceServiceInterface
 
             rename($temporaryPathAndFilename, $pathAndFilename);
 
-            $this->systemLogger->log('Replaced ' . $originalFilename . ' (' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
-                $krakenIoResult['saved_bytes'] . ' bytes!', LOG_DEBUG);
+            $this->systemLogger->log(
+                'Replaced ' . $originalFilename . ' (' . $fileName .')' .
+                ' with optimized version from Kraken. Saved ' . $krakenIoResult['saved_bytes'] . ' bytes!',
+                LOG_DEBUG
+            );
         } catch (\Exception $e) {
-            throw new Exception('Could not retrieve and / or write image from Kraken for ' . $fileName . '. ' . $e->getMessage(), 1526327172);
+            throw new Exception(
+                'Could not retrieve and / or write image from Kraken for ' . $fileName . '. ' . $e->getMessage(),
+                1526327172
+            );
         }
     }
 
@@ -89,7 +106,8 @@ class ResourceService implements ResourceServiceInterface
      */
     private static function getFilePathForSha1(string $sha1): string
     {
-        return FLOW_PATH_DATA . 'Persistent/Resources/' . $sha1[0] . '/' . $sha1[1] . '/' . $sha1[2] . '/' . $sha1[3] . '/' . $sha1;
+        return FLOW_PATH_DATA . 'Persistent/Resources/' .
+            $sha1[0] . '/' . $sha1[1] . '/' . $sha1[2] . '/' . $sha1[3] . '/' . $sha1;
     }
 
     /**

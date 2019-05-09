@@ -74,7 +74,10 @@ class KrakenService implements KrakenServiceInterface
     public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptions = []): string
     {
         if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
-            throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
+            throw new \Neos\Flow\Exception(
+                'Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ',
+                1524401129
+            );
         }
 
         $krakenOptions = array_merge($krakenOptions, $this->krakenOptions);
@@ -110,7 +113,10 @@ class KrakenService implements KrakenServiceInterface
     public function requestOptimizedResourceAsynchronously(PersistentResource $thumbnail): string
     {
         if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
-            throw new \Neos\Flow\Exception('Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ', 1524401129);
+            throw new \Neos\Flow\Exception(
+                'Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ',
+                1524401129
+            );
         }
 
         $krakenOptions = [
@@ -185,8 +191,12 @@ class KrakenService implements KrakenServiceInterface
      * @return string
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
-    protected function generateUri(string $actionName, string $controllerName, string $packageKey, array $controllerArguments = []): string
-    {
+    protected function generateUri(
+        string $actionName,
+        string $controllerName,
+        string $packageKey,
+        array $controllerArguments = []
+    ): string {
         $urlBuilder = new UriBuilder();
         $requestHandler = $this->bootstrap->getActiveRequestHandler();
         $urlBuilder->setRequest(new ActionRequest($requestHandler->getHttpRequest()));

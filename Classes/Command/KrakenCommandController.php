@@ -64,8 +64,9 @@ class KrakenCommandController extends CommandController
      * It's recommended to run this command, just before activating "liveOptimization" in the settings.
      *
      * !!Warning!!
-     * Executing this command multiple times will send potentially already optimized images to the Kraken API and thus will still
-     * count towards your API quota and can lead to "over optimized" images when running lossy optimizations multiple times.
+     * Executing this command multiple times will send potentially already optimized images to the Kraken API and thus
+     * will still count towards your API quota and can lead to "over optimized" images when running lossy optimizations
+     * multiple times.
      *
      * New resources are optimized automatically (if "liveOptimization" is activated), so there is no need to run
      * this command more than once, unless many resources need optimization (e.g. the first time run).
@@ -77,7 +78,8 @@ class KrakenCommandController extends CommandController
      * The server might end up with handling a lot of requests, since for every optimized resource an
      * asynchronous callback method is invoked to replace the physical image.
      *
-     * @param int $offset offset to start optimization (useful when optimization previously stopped at a certain thumbnail)
+     * @param int $offset offset to start optimization (useful when optimization previously stopped
+     *                    at a certain thumbnail)
      * @throws \Neos\Flow\Exception
      */
     public function optimizeCommand(int $offset = 0)
@@ -93,7 +95,9 @@ class KrakenCommandController extends CommandController
             exit();
         }
 
-        $answer = $this->output->askConfirmation('Send ' . ($thumbnailCount - $offset) . ' thumbnails to Kraken for optimization?');
+        $answer = $this->output->askConfirmation(
+            'Send ' . ($thumbnailCount - $offset) . ' thumbnails to Kraken for optimization?'
+        );
 
         if ($answer === false) {
             exit();
@@ -101,7 +105,9 @@ class KrakenCommandController extends CommandController
 
         // Warn user if `liveOptimization` is already active
         if ($this->liveOptimization === true) {
-            $answer = $this->output->askConfirmation('`liveOptimization` is already activated. Some resources might be optimized twice! Proceed?');
+            $answer = $this->output->askConfirmation(
+                '`liveOptimization` is already activated. Some resources might be optimized twice! Proceed?'
+            );
 
             if ($answer === false) {
                 exit();
@@ -123,9 +129,10 @@ class KrakenCommandController extends CommandController
 
             try {
                 $krakenIoResult = json_decode(
-                    $this->krakenService->requestOptimizedResource($thumbnailResource, ['wait' => true]), true
+                    $this->krakenService->requestOptimizedResource($thumbnailResource, ['wait' => true]),
+                    true
                 );
-            } catch(\Exception $exception) {
+            } catch (\Exception $exception) {
                 throw new \Neos\Flow\Exception(
                     'Failed to get optimized version for ' . $thumbnailResource->getFileName() . '. ' .
                     'Original Message: ' . $exception->getMessage(),

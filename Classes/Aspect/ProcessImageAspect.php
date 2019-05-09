@@ -58,14 +58,21 @@ class ProcessImageAspect
         /* @var $originalResource PersistentResource */
         $originalResource = $joinPoint->getMethodArgument('originalResource');
 
-        if ($this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource, $thumbnail) === true) {
+        if ($this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource, $thumbnail)) {
             try {
                 $this->krakenService->requestOptimizedResourceAsynchronously($thumbnail);
-                $this->systemLogger->log('Requesting optimized version for ' . $thumbnail->getFilename() . ' (' . $thumbnail->getSha1() . ')' .
-                    ' from Kraken. Actual replacement is done asynchronously via callback.', LOG_DEBUG);
+                $this->systemLogger->log(
+                    'Requesting optimized version for ' . $thumbnail->getFilename()
+                    . ' (' . $thumbnail->getSha1() . ')' .
+                    ' from Kraken. Actual replacement is done asynchronously via callback.',
+                    LOG_DEBUG
+                );
             } catch (\Exception $exception) {
-                $this->systemLogger->log('Was unable to request optimized resource for ' . $thumbnail->getFilename() . ' from Kraken.',
-                    LOG_CRIT);
+                $this->systemLogger->log(
+                    'Was unable to request optimized resource for '
+                    . $thumbnail->getFilename() . ' from Kraken.',
+                    LOG_CRIT
+                );
                 $this->systemLogger->log($exception->getMessage(), LOG_CRIT);
             }
         }
