@@ -1,25 +1,47 @@
 version: 2
 jobs:
-  build:
+  neos-X: &base
     docker:
-      - image: circleci/php:7.1-node-browsers
-
+      - image: circleci/php:7.1
     steps:
-      - checkout
-
-      - run: sudo apt update
-      - run: sudo docker-php-ext-install zip
-
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "composer.json" }}
-            - v1-dependencies-
-
-      - run: composer install --no-interaction --prefer-dist
-
+            - composer-cache-v1
+      - run:
+          name: Disable PHP memory limit
+          command: echo 'memory_limit=-1' | sudo tee -a /usr/local/etc/php/php.ini
+      - run:
+          name: Set up neos
+          command: composer create-project --no-install neos/neos-base-distribution . ${NEOS_VERSION}
+      - checkout:
+          path: DistributionPackages/GesagtGetan.KrakenOptimizer
+      - run:
+          name: Require dependencies
+          command: composer require --no-update gesagtgetan/krakenoptimizer squizlabs/php_codesniffer
+      - run:
+          name: Install dependencies
+          command: composer install --no-interaction --prefer-dist
       - save_cache:
-          key: v1-dependencies-{{ checksum "composer.json" }}
+          key: composer-cache-v1
           paths:
-            - ./vendor
-
-      - run: ./vendor/bin/phpcs -sw --standard=PSR2 ./Classes ./Tests
+            - ~/.composer/cache
+      - run:
+          name: Run PHP CodeSniffer
+          command: ./bin/phpcs -sw --standard=PSR2 ./DistributionPackages/GesagtGetan.KrakenOptimizer/Classes ./DistributionPackages/GesagtGetan.KrakenOptimizer/Tests
+      - run:
+          name: Run PHPUnit tests
+          command: ./bin/phpunit -c Packages/Plugins/GesagtGetan.KrakenOptimizer/Tests/AllTests.xml
+  neos-3:
+    <<: *base
+    environment:
+      NEOS_VERSION: 3.*
+  neos-4:
+    <<: *base
+    environment:
+      NEOS_VERSION: 4.*
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - neos-3
+      - neos-4
