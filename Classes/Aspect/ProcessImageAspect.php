@@ -61,21 +61,24 @@ class ProcessImageAspect
         /** @var Thumbnail $thumbnail */
         $thumbnail = $joinPoint->getResult();
 
-        if($this->persistenceManager->isNewObject($thumbnail)) {
-
+        if ($this->persistenceManager->isNewObject($thumbnail)) {
             /* @var $thumbnailResource PersistentResource */
             $thumbnailResource = $thumbnail->getResource();
 
             /* @var $originalResource PersistentResource */
             $originalResource = $thumbnail->getOriginalAsset()->getResource();
 
-            if ($this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource,$thumbnailResource)) {
+            if ($this->liveOptimization === true &&
+                $this->krakenService->shouldOptimize($originalResource, $thumbnailResource)
+            ) {
                 try {
                     $this->krakenService->requestOptimizedResourceAsynchronously($thumbnailResource);
-                    $this->systemLogger->debug('Requesting optimized version for ' . $thumbnailResource->getFilename() . ' (' . $thumbnailResource->getSha1() . ')' .
+                    $this->systemLogger->debug('Requesting optimized version for ' . $thumbnailResource->getFilename() .
+                        ' (' . $thumbnailResource->getSha1() . ')' .
                         ' from Kraken. Actual replacement is done asynchronously via callback.');
                 } catch (\Exception $exception) {
-                    $this->systemLogger->critical('Was unable to request optimized resource for ' . $thumbnailResource->getFilename() . ' from Kraken.');
+                    $this->systemLogger->critical('Was unable to request optimized resource for ' .
+                        ->getFilename() . ' from Kraken.');
                     $this->systemLogger->critical($exception->getMessage());
                 }
             }

@@ -128,7 +128,8 @@ class ResourceService implements ResourceServiceInterface
         $fileName = $krakenIoResult['file_name'];
 
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
-            $this->systemLogger->debug('No optimization necessary for file ' . $originalFilename . ' (' . $fileName .')');
+            $this->systemLogger->debug('No optimization necessary for file ' . $originalFilename .
+                ' (' . $fileName .')');
 
             return;
         }
@@ -143,7 +144,8 @@ class ResourceService implements ResourceServiceInterface
 
             rename($temporaryPathAndFilename, $pathAndFilename);
 
-            $this->systemLogger->debug('Replaced ' . $originalFilename . ' (' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
+            $this->systemLogger->debug('Replaced ' . $originalFilename . ' (' . $fileName .')' .
+                ' with optimized version from Kraken. Saved ' .
                 $krakenIoResult['saved_bytes'] . ' bytes!');
         } catch (\Exception $e) {
             throw new Exception(
@@ -154,7 +156,8 @@ class ResourceService implements ResourceServiceInterface
     }
 
     /**
-     * Replaced the resource of the thumbnail with a new resource object containing the optimized image delivered by Kraken.
+     * Replaced the resource of the thumbnail with a new resource object
+     * containing the optimized image delivered by Kraken.
      *
      * @param Thumbnail $thumbnail
      * @param array $krakenIoResult
@@ -163,21 +166,23 @@ class ResourceService implements ResourceServiceInterface
     public function replaceThumbnailResource(Thumbnail $thumbnail, array $krakenIoResult)
     {
         // originalFilename is unimportant, only used for better debug message
-        $originalFilename = isset($krakenIoResult['originalFilename']) ? $krakenIoResult['originalFilename'] : $krakenIoResult['file_name'];
-
-//        if (!isset($krakenIoResult['file_name']) || !self::isSha1($krakenIoResult['file_name'])) {
-//            throw new Exception('Invalid or no file name was returned for resource ' . '(' . $originalFilename .')' . ' by Kraken API', 1526371181);
-//        }
+        $originalFilename = isset($krakenIoResult['originalFilename']) ?
+            $krakenIoResult['originalFilename'] : $krakenIoResult['file_name'];
 
         if (!isset($krakenIoResult['kraked_url'])) {
-            throw new Exception('No URL to optimized resource present in response from Kraken API for ' . '(' . $originalFilename .')', 1526371191);
+            throw new Exception(
+                'No URL to optimized resource present in response from Kraken API for ' .
+                '(' . $originalFilename .')',
+                1526371191
+            );
         }
 
         // represents SHA1 hash
         $fileName = $krakenIoResult['file_name'];
 
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
-            $this->systemLogger->debug('No optimization necessary for file ' . $originalFilename . ' (' . $fileName .')');
+            $this->systemLogger->debug('No optimization necessary for file ' .
+                $originalFilename . ' (' . $fileName .')');
 
             return;
         }
@@ -196,12 +201,17 @@ class ResourceService implements ResourceServiceInterface
             $this->assetService->emitAssetResourceReplaced($thumbnail->getOriginalAsset());
 
             // Look for other thumbnails with the same resource
-            $otherAffectedThumbnailsQuery = $this->entityManager->createQuery('SELECT t FROM \Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :originalResource');
-            $otherAffectedThumbnailsQuery->setParameter('originalResource', $this->persistenceManager->getIdentifierByObject($originalResource));
+            $otherAffectedThumbnailsQuery = $this->entityManager->createQuery(
+                'SELECT t FROM \Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :originalResource'
+            );
+            $otherAffectedThumbnailsQuery->setParameter(
+                'originalResource',
+                $this->persistenceManager->getIdentifierByObject($originalResource)
+            );
             $otherAffectedThumbnails = $otherAffectedThumbnailsQuery->getResult();
 
             /** @var Thumbnail $affectedThumbnail */
-            foreach($otherAffectedThumbnails as $affectedThumbnail) {
+            foreach ($otherAffectedThumbnails as $affectedThumbnail) {
                 $affectedThumbnail->setResource($resource);
                 $this->thumbnailRepository->update($affectedThumbnail);
                 $this->assetService->emitAssetResourceReplaced($affectedThumbnail->getOriginalAsset());
@@ -214,10 +224,20 @@ class ResourceService implements ResourceServiceInterface
             // Remove the old resource
             $this->resourceManager->deleteResource($originalResource);
 
-            $this->systemLogger->debug('Replaced ' . $originalFilename . ' (' . $fileName .')' . ' with optimized version from Kraken. Saved ' .
-                $krakenIoResult['saved_bytes'] . ' bytes!');
+            $this->systemLogger->debug(
+                'Replaced ' .
+                $originalFilename .
+                ' (' . $fileName .')' .
+                ' with optimized version from Kraken. Saved ' .
+                $krakenIoResult['saved_bytes'] . ' bytes!'
+            );
         } catch (\Exception $e) {
-            throw new Exception('Could not retrieve and / or write image from Kraken for ' . $fileName . '. ' . $e->getMessage(), 1526327172);
+            throw new Exception(
+                'Could not retrieve and / or write image from Kraken for ' .
+                $fileName .
+                '. ' . $e->getMessage(),
+                1526327172
+            );
         }
     }
 
@@ -231,14 +251,20 @@ class ResourceService implements ResourceServiceInterface
     {
         $redirectHandlerEnabled = $this->packageManager->isPackageAvailable('Neos.RedirectHandler');
         if ($redirectHandlerEnabled) {
-            $originalAssetResourceUri = new Uri($this->resourceManager->getPublicPersistentResourceUri($originalAssetResource));
+            $originalAssetResourceUri = new Uri(
+                $this->resourceManager->getPublicPersistentResourceUri($originalAssetResource)
+            );
             $newAssetResourceUri = new Uri($this->resourceManager->getPublicPersistentResourceUri($newAssetResource));
 
             /** @var RedirectStorageInterface $redirectStorage */
             $redirectStorage = $this->objectManager->get(RedirectStorageInterface::class);
             $existingRedirect = $redirectStorage->getOneBySourceUriPathAndHost($originalAssetResourceUri);
             if ($existingRedirect === null) {
-                $redirectStorage->addRedirect($originalAssetResourceUri->getPath(), $newAssetResourceUri->getPath(), 301);
+                $redirectStorage->addRedirect(
+                    $originalAssetResourceUri->getPath(),
+                    $newAssetResourceUri->getPath(),
+                    301
+                );
             }
         }
     }

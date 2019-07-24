@@ -13,7 +13,8 @@ interface ResourceServiceInterface
     public function replaceLocalFile(array $krakenIoResult);
 
     /**
-     * Replaced the resource of the thumbnail with a new resource object containing the optimized image delivered by Kraken.
+     * Replaced the resource of the thumbnail with a new resource
+     * object containing the optimized image delivered by Kraken.
      *
      * @param Thumbnail $thumbnail
      * @param array $krakenIoResult

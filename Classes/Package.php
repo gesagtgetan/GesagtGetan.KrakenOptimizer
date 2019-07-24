@@ -18,6 +18,11 @@ class Package extends BasePackage
     public function boot(Bootstrap $bootstrap)
     {
         $dispatcher = $bootstrap->getSignalSlotDispatcher();
-        $dispatcher->connect(ThumbnailService::class, 'thumbnailPersisted', ProcessThumbnailSlot::class, 'retrieveAdjustedThumbnailResource');
+        $dispatcher->connect(
+            ThumbnailService::class,
+            'thumbnailPersisted',
+            ProcessThumbnailSlot::class,
+            'retrieveAdjustedThumbnailResource'
+        );
     }
 }

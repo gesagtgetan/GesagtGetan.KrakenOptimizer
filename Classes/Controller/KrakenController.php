@@ -92,26 +92,36 @@ class KrakenController extends ActionController
         }
 
         if (!isset($krakenIoResult['verificationToken']) ||
-            $this->krakenService->verifyToken($krakenIoResult['verificationToken'], $krakenIoResult['originalFilename']) === false) {
+            $this->krakenService->verifyToken(
+                $krakenIoResult['verificationToken'],
+                $krakenIoResult['originalFilename']
+            ) === false
+        ) {
             throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
         }
 
         // Get thumbnail identifier
         $resourceIdentifier = $krakenIoResult['resourceIdentifier'];
-        $query = $this->entityManager->createQuery('SELECT t FROM Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :resource');
+        $query = $this->entityManager->createQuery(
+            'SELECT t FROM Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :resource'
+        );
         $query->setParameter('resource', $resourceIdentifier);
         $query->setMaxResults(1);
 
         try {
             $thumbnail = $query->getOneOrNullResult();
 
-            if($thumbnail instanceof Thumbnail) {
-                $this->logger->debug(sprintf('Found thumbnail for resource identifier %s', $resourceIdentifier),
-                    ['thumbnail' => $thumbnail]);
+            if ($thumbnail instanceof Thumbnail) {
+                $this->logger->debug(
+                    sprintf('Found thumbnail for resource identifier %s', $resourceIdentifier),
+                    ['thumbnail' => $thumbnail]
+                );
                 $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
             }
-        } catch(\Exception $e) {
-            $this->logger->debug(sprintf('Could not find a thumbnail object for resource identifier %s', $resourceIdentifier));
+        } catch (\Exception $e) {
+            $this->logger->debug(
+                sprintf('Could not find a thumbnail object for resource identifier %s', $resourceIdentifier)
+            );
         }
     }
 }

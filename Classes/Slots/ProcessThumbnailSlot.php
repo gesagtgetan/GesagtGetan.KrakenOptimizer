@@ -8,7 +8,8 @@ use Neos\Flow\ResourceManagement\PersistentResource;
 use Neos\Media\Domain\Model\Thumbnail;
 use Psr\Log\LoggerInterface;
 
-class ProcessThumbnailSlot {
+class ProcessThumbnailSlot
+{
     /**
      * @Flow\Inject
      * @var LoggerInterface
@@ -62,14 +63,17 @@ class ProcessThumbnailSlot {
         /* @var $originalResource PersistentResource */
         $originalResource = $thumbnail->getOriginalAsset()->getResource();
 
-        if ($thumbnailResource && $this->liveOptimization === true && $this->krakenService->shouldOptimize($originalResource,
-               $thumbnailResource) === true) {
+        if ($thumbnailResource && $this->liveOptimization === true &&
+            $this->krakenService->shouldOptimize($originalResource, $thumbnailResource)
+        ) {
             try {
                 $this->krakenService->requestOptimizedResourceAsynchronously($thumbnailResource);
-                $this->systemLogger->debug('Requesting optimized version for ' . $thumbnailResource->getFilename() . ' (' . $thumbnailResource->getSha1() . ')' .
+                $this->systemLogger->debug('Requesting optimized version for ' . $thumbnailResource->getFilename() .
+                    ' (' . $thumbnailResource->getSha1() . ')' .
                     ' from Kraken. Actual replacement is done asynchronously via callback.');
             } catch (\Exception $exception) {
-                $this->systemLogger->critical('Was unable to request optimized resource for ' . $thumbnailResource->getFilename() . ' from Kraken.');
+                $this->systemLogger->critical('Was unable to request optimized resource for ' .
+                    $thumbnailResource->getFilename() . ' from Kraken.');
                 $this->systemLogger->critical($exception->getMessage());
             }
         }
