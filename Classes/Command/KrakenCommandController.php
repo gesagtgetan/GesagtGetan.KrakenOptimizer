@@ -3,7 +3,6 @@ namespace GesagtGetan\KrakenOptimizer\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
-use Neos\Flow\Log\SystemLoggerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use Neos\Media\Domain\Model\Thumbnail;
 use Neos\Media\Domain\Repository\ThumbnailRepository;
@@ -16,12 +15,6 @@ use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
  */
 class KrakenCommandController extends CommandController
 {
-    /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
-     */
-    protected $systemLogger;
-
     /**
      * @Flow\Inject
      * @var ThumbnailRepository
