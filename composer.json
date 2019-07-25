@@ -3,8 +3,9 @@
     "type": "neos-plugin",
     "name": "gesagtgetan/krakenoptimizer",
     "require": {
-        "neos/neos": "*",
-        "guzzlehttp/guzzle": "~6.0"
+        "neos/neos": "~4.3.0",
+        "guzzlehttp/guzzle": "~6.0",
+        "ext-json": "*"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "~3.4.2"
