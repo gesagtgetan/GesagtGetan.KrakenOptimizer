@@ -53,18 +53,20 @@ class ProcessThumbnailSlot
      */
     public function retrieveAdjustedThumbnailResource(Thumbnail $thumbnail)
     {
+        if ($this->liveOptimization === false) {
+            return;
+        }
+
         $this->systemLogger->debug('retrieveAdjustedThumbnailResource was called');
 
         /* @var $thumbnailResource PersistentResource */
         $thumbnailResource = $thumbnail->getResource();
 
-        $this->systemLogger->debug('Thumbnail to be optimized', ['resource' => $thumbnailResource]);
-
         /* @var $originalResource PersistentResource */
         $originalResource = $thumbnail->getOriginalAsset()->getResource();
 
-        if ($thumbnailResource && $this->liveOptimization === true &&
-            $this->krakenService->shouldOptimize($originalResource, $thumbnailResource)
+        if ($thumbnailResource instanceof PersistentResource &&
+            $this->krakenService->shouldOptimize($originalResource, $thumbnailResource) === true
         ) {
             try {
                 $this->krakenService->requestOptimizedResourceAsynchronously($thumbnailResource);
