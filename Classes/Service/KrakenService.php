@@ -4,7 +4,6 @@ namespace GesagtGetan\KrakenOptimizer\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
-use Neos\Flow\Persistence\Generic\PersistenceManager;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use GuzzleHttp\Psr7;

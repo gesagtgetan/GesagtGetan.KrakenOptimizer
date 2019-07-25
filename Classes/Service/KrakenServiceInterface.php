@@ -32,14 +32,14 @@ interface KrakenServiceInterface
     /**
      * Verifies if the given verification token is correct.
      *
+     * @param string $vericiationToken
      * @param string $filename
      * @return bool
      */
     public function verifyToken(string $vericiationToken, string $filename): bool;
 
     /**
-     * Check if flag is set to allow optimization of original resources that are too small
-     * or just the right size, so no thumbnail was generated.
+     * Check if optimization should occur.
      *
      * @param PersistentResource $originalResource
      * @param PersistentResource $thumbnail

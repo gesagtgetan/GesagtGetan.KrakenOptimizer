@@ -87,6 +87,11 @@ class ResourceService implements ResourceServiceInterface
     protected $persistenceManager;
 
     /**
+     * @var PersistentResource
+     */
+    protected $optimizedResource;
+
+    /**
      * @Flow\Inject
      * @var AssetService
      */
@@ -127,29 +132,16 @@ class ResourceService implements ResourceServiceInterface
         }
 
         try {
-            $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
-            Utility\Files::createDirectoryRecursively($temporaryPath);
-            $temporaryPathAndFilename = $temporaryPath . $originalFilename;
+            $resource = $this->getOptimizedResource($krakenIoResult['kraked_url'], $originalFilename);
 
-            $this->guzzleHttpClient->get($krakenIoResult['kraked_url'], ['sink' => $temporaryPathAndFilename]);
-
-            $originalResource = $thumbnail->getResource();
-            $resource = $this->resourceManager->importResource($temporaryPathAndFilename);
             $thumbnail->setResource($resource);
+
             $this->thumbnailRepository->update($thumbnail);
             $this->assetService->emitAssetResourceReplaced($thumbnail->getOriginalAsset());
 
-            // Look for other thumbnails with the same resource
-            $otherAffectedThumbnailsQuery = $this->entityManager->createQuery(
-                'SELECT t FROM \Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :originalResource'
-            );
-            $otherAffectedThumbnailsQuery->setParameter(
-                'originalResource',
-                $this->persistenceManager->getIdentifierByObject($originalResource)
-            );
-            $otherAffectedThumbnails = $otherAffectedThumbnailsQuery->getResult();
+            $originalResource = $thumbnail->getResource();
+            $otherAffectedThumbnails = $this->getThumbnailsByResource($originalResource);
 
-            /** @var Thumbnail $affectedThumbnail */
             foreach ($otherAffectedThumbnails as $affectedThumbnail) {
                 $affectedThumbnail->setResource($resource);
                 $this->thumbnailRepository->update($affectedThumbnail);
@@ -166,18 +158,54 @@ class ResourceService implements ResourceServiceInterface
             $this->systemLogger->debug(
                 'Replaced ' .
                 $originalFilename .
-                ' (' . $fileName .')' .
+                ' (' . $krakenIoResult['resourceIdentifier'] .')' .
                 ' with optimized version from Kraken. Saved ' .
                 $krakenIoResult['saved_bytes'] . ' bytes!'
             );
         } catch (\Exception $e) {
             throw new Exception(
-                'Could not retrieve and / or write image from Kraken for ' .
-                $fileName .
+                'Could not retrieve and / or write image from Kraken for ' . $originalFilename .
                 '. ' . $e->getMessage(),
                 1526327172
             );
         }
+    }
+
+    /**
+     * @param PersistentResource $resource
+     * @return Thumbnail[]
+     */
+    public function getThumbnailsByResource(PersistentResource $resource): array
+    {
+        // Look for other thumbnails with the same resource
+        $query = $this->entityManager->createQuery(
+            'SELECT t FROM \Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :originalResource'
+        );
+        $query->setParameter(
+            'originalResource',
+            $resource
+        );
+
+        return $query->getResult();
+    }
+
+    public function getOptimizedResource(string $uri, string $originalFilename): PersistentResource
+    {
+        if (!isset($this->optimizedResource) || !($this->optimizedResource instanceof PersistentResource)) {
+            $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
+            Utility\Files::createDirectoryRecursively($temporaryPath);
+            $temporaryPathAndFilename = $temporaryPath . $originalFilename;
+
+            $response = $this->guzzleHttpClient->get($uri, ['sink' => $temporaryPathAndFilename]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new Exception('URI to optimized image could not be resolved', 1563577626);
+            }
+
+            $this->optimizedResource = $this->resourceManager->importResource($temporaryPathAndFilename);
+        }
+
+        return $this->optimizedResource;
     }
 
     /**

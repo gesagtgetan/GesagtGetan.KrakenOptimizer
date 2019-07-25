@@ -9,6 +9,7 @@ use Neos\Flow\Mvc\View\JsonView;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
+use Neos\Flow\ResourceManagement\PersistentResource;
 use Neos\Media\Domain\Model\Thumbnail;
 
 /**
@@ -61,8 +62,13 @@ class KrakenController extends ActionController
             throw new \Neos\Flow\Exception('Kraken was unable to optimize resource', 1524665608);
         }
 
-        if (!isset($krakenIoResult['file_name'])) {
-            throw new \Neos\Flow\Exception('Filename missing in Kraken callback payload', 1524665605);
+        if (!isset($krakenIoResult['resourceIdentifier']) ||
+            !isset($krakenIoResult['originalFilename'])
+        ) {
+            throw new \Neos\Flow\Exception(
+                'Filename or resource identifier missing in Kraken callback payload',
+                1524665605
+            );
         }
 
         if (!isset($krakenIoResult['verificationToken']) ||
@@ -74,27 +80,33 @@ class KrakenController extends ActionController
             throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
         }
 
-        // Get thumbnail identifier
-        $resourceIdentifier = $krakenIoResult['resourceIdentifier'];
-        $query = $this->entityManager->createQuery(
-            'SELECT t FROM Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :resource'
-        );
-        $query->setParameter('resource', $resourceIdentifier);
-        $query->setMaxResults(1);
-
         try {
-            $thumbnail = $query->getOneOrNullResult();
+            $resourceIdentifier = $krakenIoResult['resourceIdentifier'];
+            $resource = $this->resourceManager->getResourceBySha1($resourceIdentifier);
 
-            if ($thumbnail instanceof Thumbnail) {
-                $this->logger->debug(
-                    sprintf('Found thumbnail for resource identifier %s', $resourceIdentifier),
-                    ['thumbnail' => $thumbnail]
+            if ((!$resource instanceof PersistentResource)) {
+                throw new Exception(
+                    'Could not find resource with identifier ' . $resourceIdentifier,
+                    1524665602
                 );
+            }
+            $thumbnail = $this->resourceService->getThumbnailsByResource($resource);
+
+            if (isset($thumbnail[0]) && $thumbnail[0] instanceof Thumbnail) {
+                $thumbnail = $thumbnail[0];
+                $this->logger->debug(
+                    sprintf('Found thumbnail for resource identifier %s', $resourceIdentifier)
+                );
+
                 $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+            } else {
+                $this->logger->debug(
+                    sprintf('Could not find a thumbnail object for resource identifier %s', $resourceIdentifier)
+                );
             }
         } catch (\Exception $e) {
-            $this->logger->debug(
-                sprintf('Could not find a thumbnail object for resource identifier %s', $resourceIdentifier)
+            $this->logger->error(
+                sprintf('Failed attempting to replace resource %s for thumbnail', $resourceIdentifier)
             );
         }
     }
