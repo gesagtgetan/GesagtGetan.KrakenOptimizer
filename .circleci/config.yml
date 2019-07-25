@@ -30,7 +30,7 @@ jobs:
           command: ./bin/phpcs -sw --standard=PSR2 ./DistributionPackages/GesagtGetan.KrakenOptimizer/Classes ./DistributionPackages/GesagtGetan.KrakenOptimizer/Tests
       - run:
           name: Run PHPUnit tests
-          command: ./bin/phpunit -c Packages/Plugins/GesagtGetan.KrakenOptimizer/Tests/AllTests.xml
+          command: FLOW_CONTEXT="Testing" ./bin/phpunit -c Packages/Plugins/GesagtGetan.KrakenOptimizer/Tests/AllTests.xml
   neos-3:
     <<: *base
     environment:
