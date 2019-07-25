@@ -148,13 +148,6 @@ class ResourceService implements ResourceServiceInterface
                 $this->assetService->emitAssetResourceReplaced($affectedThumbnail->getOriginalAsset());
             }
 
-            // Add redirect from the old resource path to the new resource path
-            // TODO doesn't work with foreign url's like Google Cloud Storage
-            // $this->addRedirect($originalResource, $resource);
-
-            // Remove the old resource
-            $this->resourceManager->deleteResource($originalResource);
-
             $this->systemLogger->debug(
                 'Replaced ' .
                 $originalFilename .
