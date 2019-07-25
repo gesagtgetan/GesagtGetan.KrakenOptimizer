@@ -5,7 +5,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Http\Uri;
 use GuzzleHttp\Client;
-use Neos\Flow\ObjectManagement\ObjectManager;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Flow\Package\PackageManager;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
@@ -109,9 +108,7 @@ class ResourceService implements ResourceServiceInterface
      */
     public function replaceThumbnailResource(Thumbnail $thumbnail, array $krakenIoResult)
     {
-        // originalFilename is unimportant, only used for better debug message
-        $originalFilename = isset($krakenIoResult['originalFilename']) ?
-            $krakenIoResult['originalFilename'] : $krakenIoResult['file_name'];
+        $originalFilename = $krakenIoResult['originalFilename'];
 
         if (!isset($krakenIoResult['kraked_url'])) {
             throw new Exception(
@@ -121,12 +118,9 @@ class ResourceService implements ResourceServiceInterface
             );
         }
 
-        // represents SHA1 hash
-        $fileName = $krakenIoResult['file_name'];
-
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
             $this->systemLogger->debug('No optimization necessary for file ' .
-                $originalFilename . ' (' . $fileName .')');
+                $originalFilename . ' (' . $krakenIoResult['resourceIdentifier'] .')');
 
             return;
         }
