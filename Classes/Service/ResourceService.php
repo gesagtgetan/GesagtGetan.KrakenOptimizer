@@ -195,6 +195,21 @@ class ResourceService implements ResourceServiceInterface
         return $this->optimizedResource;
     }
 
+    protected function addRedirectAndDelete(PersistentResource $originalResource, PersistentResource $newResource)
+    {
+
+        // Add redirect from the old resource path to the new resource path
+        // TODO doesn't work with foreign url's like Google Cloud Storage
+        // $this->addRedirect($originalResource, $resource);
+
+        // NOTE: Should be okay, let's add a flag to disable redirect generation
+        // or keep the original resource if we can not create a redirect.
+        // Maybe we can check where the resource is located and only create redirect for local resources?
+
+        // Remove the old resource (happens automatically if not used anymore?)
+        $this->resourceManager->deleteResource($originalResource);
+    }
+
     /**
      * Adds a redirect from the old resource to the new resource
      *
