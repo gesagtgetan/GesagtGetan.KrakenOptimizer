@@ -9,9 +9,17 @@ interface KrakenServiceInterface
      * Request optimized resource from Kraken.
      *
      * @param PersistentResource $originalResource
-     * @param array $krakenOptions
      */
-    public function requestOptimizedResource(PersistentResource $originalResource, array $krakenOptions = []);
+    public function requestOptimizedResource(PersistentResource $originalResource);
+
+    /**
+     * Request optimized resource from Kraken and also define callback URL
+     * for asynchronous image replacement.
+     *
+     * @param PersistentResource $resource
+     * @return string the response as JSON containing the Id of the async call
+     */
+    public function requestOptimizedResourceAsynchronously(PersistentResource $resource): string;
 
     /**
      * Creates the verification token for securing callback calls.

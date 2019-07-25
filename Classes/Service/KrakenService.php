@@ -26,7 +26,7 @@ class KrakenService implements KrakenServiceInterface
     /**
      * @var array
      */
-    protected $krakenOptions;
+    protected $krakenOptionsFromSettings;
 
     /**
      * @var string
@@ -72,30 +72,29 @@ class KrakenService implements KrakenServiceInterface
      */
     public function injectSettings(array $settings)
     {
-        $this->krakenOptions = $settings['krakenOptions'];
+        $this->krakenOptionsFromSettings = $settings['krakenOptions'];
         $this->apiKey = $settings['krakenOptions']['auth']['api_key'];
         $this->optimizeOriginalResource = $settings['optimizeOriginalResource'];
     }
 
     /**
-     * Request optimized resource from Kraken.
+     * Request optimized resource from Kraken and wait for optimized resource in response.
      *
      * @param PersistentResource $thumbnail
-     * @param array $krakenOptions
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Neos\Flow\Exception
      */
-    public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptions = []): string
+    public function requestOptimizedResource(PersistentResource $thumbnail): string
     {
-        if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
+        if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) || !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
             throw new \Neos\Flow\Exception(
                 'Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ',
                 1524401129
             );
         }
 
-        $krakenOptions = array_merge($krakenOptions, $this->krakenOptions);
+        $krakenOptions = array_merge(['wait' => true], $this->krakenOptionsFromSettings);
 
         return $this->guzzleHttpClient->request(
             'POST',
@@ -127,9 +126,9 @@ class KrakenService implements KrakenServiceInterface
      */
     public function requestOptimizedResourceAsynchronously(PersistentResource $resource): string
     {
-        if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
+        if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) || !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
             throw new \Neos\Flow\Exception(
-                'Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ',
+                'Kraken requires ``api_key`` and ``api_secret`` to be defined in settings ',
                 1524401129
             );
         }

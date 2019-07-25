@@ -133,7 +133,7 @@ class KrakenCommandController extends CommandController
 
             try {
                 $krakenIoResult = json_decode(
-                    $this->krakenService->requestOptimizedResource($thumbnailResource, ['wait' => true]),
+                    $this->krakenService->requestOptimizedResource($thumbnailResource),
                     true
                 );
             } catch (\Exception $exception) {
