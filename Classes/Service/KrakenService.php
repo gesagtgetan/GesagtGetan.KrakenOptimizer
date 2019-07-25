@@ -10,6 +10,7 @@ use GuzzleHttp\Psr7;
 use Neos\Flow\Mvc\Routing\UriBuilder;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Mvc\ActionRequest;
+use Neos\Flow\Exception;
 
 /**
  * @Flow\Scope("singleton")
@@ -82,13 +83,13 @@ class KrakenService implements KrakenServiceInterface
      * @param PersistentResource $thumbnail
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      */
     public function requestOptimizedResource(PersistentResource $thumbnail): string
     {
         if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) ||
             !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
-            throw new \Neos\Flow\Exception(
+            throw new Exception(
                 'Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ',
                 1524401129
             );
@@ -121,14 +122,14 @@ class KrakenService implements KrakenServiceInterface
      * @param PersistentResource $resource
      * @return string the response as JSON containing the Id of the async call
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
     public function requestOptimizedResourceAsynchronously(PersistentResource $resource): string
     {
         if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) ||
             !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
-            throw new \Neos\Flow\Exception(
+            throw new Exception(
                 'Kraken requires ``api_key`` and ``api_secret`` to be defined in settings ',
                 1524401129
             );
@@ -173,7 +174,7 @@ class KrakenService implements KrakenServiceInterface
      * Creates the verification token for securing callback calls.
      *
      * @param string $filename
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      * @return string
      */
     public function createToken(string $filename): string
@@ -181,7 +182,7 @@ class KrakenService implements KrakenServiceInterface
         $token = password_hash($this->apiKey . $filename, PASSWORD_BCRYPT, ['cost' => self::BCRYPT_COST]);
 
         if ($token === false) {
-            throw new \Neos\Flow\Exception('Could not generate verfication token', 1525948005);
+            throw new Exception('Could not generate verfication token', 1525948005);
         }
 
         return password_hash($this->apiKey . $filename, PASSWORD_BCRYPT, ['cost' => self::BCRYPT_COST]);

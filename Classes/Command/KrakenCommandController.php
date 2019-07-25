@@ -9,6 +9,7 @@ use Neos\Media\Domain\Repository\ThumbnailRepository;
 use Neos\Media\Domain\Service\ThumbnailService;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
+use Neos\Flow\Exception;
 
 /**
  * @Flow\Scope("singleton")
@@ -75,7 +76,7 @@ class KrakenCommandController extends CommandController
      *
      * @param int $offset offset to start optimization (useful when optimization previously stopped
      *                    at a certain thumbnail)
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      */
     public function optimizeCommand(int $offset = 0)
     {
@@ -130,7 +131,7 @@ class KrakenCommandController extends CommandController
                     true
                 );
             } catch (\Exception $exception) {
-                throw new \Neos\Flow\Exception(
+                throw new Exception(
                     'Failed to get optimized version for ' . $thumbnailResource->getFileName() . '. ' .
                     'Original Message: ' . $exception->getMessage(),
                     1524251845

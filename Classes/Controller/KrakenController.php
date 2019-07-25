@@ -51,7 +51,7 @@ class KrakenController extends ActionController
     /**
      * Replaces the local file within the file system with the optimized image delivered by Kraken.
      *
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      * @see https://kraken.io/docs/wait-callback
      */
     public function replaceThumbnailResourceAction()
@@ -59,13 +59,13 @@ class KrakenController extends ActionController
         $krakenIoResult = $this->request->getArguments();
 
         if (!isset($krakenIoResult['success']) || $krakenIoResult['success'] !== 'true') {
-            throw new \Neos\Flow\Exception('Kraken was unable to optimize resource', 1524665608);
+            throw new Exception('Kraken was unable to optimize resource', 1524665608);
         }
 
         if (!isset($krakenIoResult['resourceIdentifier']) ||
             !isset($krakenIoResult['originalFilename'])
         ) {
-            throw new \Neos\Flow\Exception(
+            throw new Exception(
                 'Filename or resource identifier missing in Kraken callback payload',
                 1524665605
             );
@@ -77,7 +77,7 @@ class KrakenController extends ActionController
                 $krakenIoResult['originalFilename']
             ) === false
         ) {
-            throw new \Neos\Flow\Exception('Invalid verification token supplied', 1524665601);
+            throw new Exception('Invalid verification token supplied', 1524665601);
         }
 
         try {
