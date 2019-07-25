@@ -138,6 +138,7 @@ class KrakenCommandController extends CommandController
             }
 
             $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
+            $krakenIoResult['resourceIdentifier'] = $thumbnailResource->getSha1();
             $savedBytes += $krakenIoResult['saved_bytes'];
 
             $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
