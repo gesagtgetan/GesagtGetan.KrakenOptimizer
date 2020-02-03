@@ -3,7 +3,7 @@
         beStrictAboutChangesToGlobalState="true"
         beStrictAboutTestsThatDoNotTestAnything="true"
         beStrictAboutOutputDuringTests="true"
-        bootstrap="../../../../Build/BuildEssentials/PhpUnit/FunctionalTestBootstrap.php"
+        bootstrap="../../../Build/BuildEssentials/PhpUnit/FunctionalTestBootstrap.php"
         convertErrorsToExceptions="true"
         convertNoticesToExceptions="true"
         convertWarningsToExceptions="true"
