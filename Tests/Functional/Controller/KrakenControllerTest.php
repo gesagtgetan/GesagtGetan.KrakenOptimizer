@@ -68,7 +68,7 @@ class KrakenControllerTest extends FunctionalTestCase
         ];
 
         $response = $this->browser->request('http://localhost' . self::REPLACE_ACTION_URI, 'POST', $payload);
-        $this->assertEquals('1524665601', $response->getHeader('X-Flow-ExceptionCode'));
+        $this->assertContains('1524665601', $response->getHeader('X-Flow-ExceptionCode'));
     }
 
     /**
@@ -86,7 +86,7 @@ class KrakenControllerTest extends FunctionalTestCase
         ];
 
         $response = $this->browser->request('http://localhost' . self::REPLACE_ACTION_URI, 'POST', $payload);
-        $this->assertEquals('1524665601', $response->getHeader('X-Flow-ExceptionCode'));
+        $this->assertContains('1524665601', $response->getHeader('X-Flow-ExceptionCode'));
     }
 
     /**
