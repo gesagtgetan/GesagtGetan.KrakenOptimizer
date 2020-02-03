@@ -98,11 +98,15 @@ class KrakenControllerTest extends FunctionalTestCase
     public function correctPayloadWillReplaceResource()
     {
         $testResource = $this->resourceManager->importResource(
-            'resource://GesagtGetan.KrakenOptimizer/Private/Testing/TestImage_Not_Optimized.jpg'
+            'resource://GesagtGetan.KrakenOptimizer/Public/Testing/TestImage_Not_Optimized.jpg'
         );
 
         $optimizedTestResource= $this->resourceManager->importResource(
-            'resource://GesagtGetan.KrakenOptimizer/Private/Testing/TestImage_Optimized.jpg'
+            'resource://GesagtGetan.KrakenOptimizer/Public/Testing/TestImage_Optimized.jpg'
+        );
+
+        $optimizedTestResourcePublicUri = $this->resourceManager->getPublicPersistentResourceUri(
+            $optimizedTestResource
         );
 
         $thumbnails = $this->generateFakeThumbnails(
@@ -119,7 +123,7 @@ class KrakenControllerTest extends FunctionalTestCase
             'resourceIdentifier' => $thumbnails[0]->getResource()->getSha1(),
             'originalFilename' => $testResource->getFilename(),
             'verificationToken' => $this->krakenService->createToken($testResource->getFilename()),
-            'kraked_url' => 'https://dl.kraken.io/web/5ad0990c18e2b106322e41e175ad1165/TestImage_Not_Optimized.jpg',
+            'kraked_url' => $optimizedTestResourcePublicUri,
             'saved_bytes' => '12990'
         ];
 
@@ -141,7 +145,7 @@ class KrakenControllerTest extends FunctionalTestCase
     public function originalThumbnailIsPreservedUponFailure()
     {
         $testResource = $this->resourceManager->importResource(
-            'resource://GesagtGetan.KrakenOptimizer/Private/Testing/TestImage_Not_Optimized.jpg'
+            'resource://GesagtGetan.KrakenOptimizer/Public/Testing/TestImage_Not_Optimized.jpg'
         );
 
         $thumbnail = $this->generateFakeThumbnails(
