@@ -2,7 +2,7 @@ version: 2
 jobs:
   neos-X: &base
     docker:
-      - image: circleci/php:7.1
+      - image: circleci/php:7.3
     steps:
       - restore_cache:
           keys:
@@ -31,17 +31,12 @@ jobs:
       - run:
           name: Run PHPUnit tests
           command: FLOW_CONTEXT="Testing" ./bin/phpunit -c Packages/Plugins/GesagtGetan.KrakenOptimizer/Tests/AllTests.xml
-  neos-3:
+  neos-5:
     <<: *base
     environment:
-      NEOS_VERSION: 3.*
-  neos-4:
-    <<: *base
-    environment:
-      NEOS_VERSION: 4.*
+      NEOS_VERSION: 5.*
 workflows:
   version: 2
   workflow:
     jobs:
-      - neos-3
-      - neos-4
+      - neos-5
