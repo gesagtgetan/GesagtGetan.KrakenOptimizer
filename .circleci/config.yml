@@ -17,7 +17,7 @@ jobs:
           path: DistributionPackages/GesagtGetan.KrakenOptimizer
       - run:
           name: Require dependencies
-          command: composer require --no-update gesagtgetan/krakenoptimizer squizlabs/php_codesniffer
+          command: composer require --no-update gesagtgetan/krakenoptimizer:@dev squizlabs/php_codesniffer
       - run:
           name: Install dependencies
           command: composer install --no-interaction --prefer-dist
