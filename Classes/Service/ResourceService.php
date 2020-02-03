@@ -137,29 +137,24 @@ class ResourceService implements ResourceServiceInterface
      * @param string $originalFilename
      * @return PersistentResource
      * @throws Exception
+     * @throws Utility\Exception\FilesException
+     * @throws \Neos\Flow\ResourceManagement\Exception
+     * @throws \Neos\Flow\Utility\Exception
      */
     public function getOptimizedResource(string $uri, string $originalFilename): PersistentResource
     {
         $optimizedResource = null;
-        try {
-            $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
-            Utility\Files::createDirectoryRecursively($temporaryPath);
-            $temporaryPathAndFilename = $temporaryPath . $originalFilename;
+        $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
+        Utility\Files::createDirectoryRecursively($temporaryPath);
+        $temporaryPathAndFilename = $temporaryPath . $originalFilename;
 
-            $response = $this->guzzleHttpClient->get($uri, ['sink' => $temporaryPathAndFilename]);
+        $response = $this->guzzleHttpClient->get($uri, ['sink' => $temporaryPathAndFilename]);
 
-            if ($response->getStatusCode() !== 200) {
-                throw new Exception('URI to optimized image could not be resolved', 1563577626);
-            }
-
-            $optimizedResource = $this->resourceManager->importResource($temporaryPathAndFilename);
-        } catch (\Neos\Flow\Utility\Exception $e) {
-
-        } catch (Utility\Exception\FilesException $e) {
-
-        } catch (\Neos\Flow\ResourceManagement\Exception $e) {
-
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception('URI to optimized image could not be resolved', 1563577626);
         }
+
+        $optimizedResource = $this->resourceManager->importResource($temporaryPathAndFilename);
 
         return $optimizedResource;
     }

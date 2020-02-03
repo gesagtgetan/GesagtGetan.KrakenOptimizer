@@ -126,7 +126,7 @@ class KrakenCommandController extends CommandController
             }
 
             try {
-                if($thumbnailResource->getStream()) {
+                if ($thumbnailResource->getStream()) {
                     $krakenIoResult = json_decode(
                         $this->krakenService->requestOptimizedResource($thumbnailResource),
                         true
@@ -142,7 +142,7 @@ class KrakenCommandController extends CommandController
                 );
             }
 
-            if($krakenIoResult) {
+            if ($krakenIoResult) {
                 $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
                 $krakenIoResult['resourceIdentifier'] = $thumbnailResource->getSha1();
                 $savedBytes += $krakenIoResult['saved_bytes'];
