@@ -43,7 +43,7 @@ class KrakenControllerTest extends FunctionalTestCase
      */
     protected $thumbnailService;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 

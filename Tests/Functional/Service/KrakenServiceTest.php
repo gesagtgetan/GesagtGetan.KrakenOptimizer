@@ -28,7 +28,7 @@ class KrakenServiceTest extends FunctionalTestCase
      */
     protected $testResource;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
