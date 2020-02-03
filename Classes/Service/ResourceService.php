@@ -109,7 +109,6 @@ class ResourceService implements ResourceServiceInterface
             $resource = $this->getOptimizedResource($krakenIoResult['kraked_url'], $originalFilename);
 
             if ($resource instanceof PersistentResource) {
-
                 $thumbnail->setResource($resource);
 
                 $this->thumbnailRepository->update($thumbnail);
