@@ -2,8 +2,10 @@
 namespace GesagtGetan\KrakenOptimizer\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
+use GuzzleHttp\Psr7\ServerRequest;
 use Neos\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
+use Neos\Flow\Mvc\ActionRequestFactory;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use GuzzleHttp\Psr7;
@@ -68,6 +70,12 @@ class KrakenService implements KrakenServiceInterface
     protected $persistenceManager;
 
     /**
+     * @Flow\Inject
+     * @var ActionRequestFactory
+     */
+    protected $actionRequestFactory;
+
+    /**
      * @param array $settings
      */
     public function injectSettings(array $settings)
@@ -81,11 +89,12 @@ class KrakenService implements KrakenServiceInterface
      * Request optimized resource from Kraken and wait for optimized resource in response.
      *
      * @param PersistentResource $thumbnail
+     * @param array $krakenOptionsOverride
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws Exception
      */
-    public function requestOptimizedResource(PersistentResource $thumbnail): string
+    public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptionsOverride = []): string
     {
         if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) ||
             !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
@@ -96,6 +105,7 @@ class KrakenService implements KrakenServiceInterface
         }
 
         $krakenOptions = array_merge(['wait' => true], $this->krakenOptionsFromSettings);
+        $krakenOptions = array_merge($krakenOptionsOverride, $krakenOptions);
 
         return $this->guzzleHttpClient->request(
             'POST',
@@ -136,6 +146,7 @@ class KrakenService implements KrakenServiceInterface
         }
 
         $krakenOptions = [
+            'wait' => false,
             'callback_url' => $this->generateUri(
                 'replaceThumbnailResource',
                 'Kraken',
@@ -206,6 +217,11 @@ class KrakenService implements KrakenServiceInterface
      * @param string $packageKey
      * @param array $controllerArguments
      * @return string
+     * @throws \Neos\Flow\Http\Exception
+     * @throws \Neos\Flow\Mvc\Exception\InvalidActionNameException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentNameException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentTypeException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidControllerNameException
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
     protected function generateUri(
@@ -214,10 +230,11 @@ class KrakenService implements KrakenServiceInterface
         string $packageKey,
         array $controllerArguments = []
     ): string {
-        $urlBuilder = new UriBuilder();
-        $requestHandler = $this->bootstrap->getActiveRequestHandler();
-        $urlBuilder->setRequest(new ActionRequest($requestHandler->getHttpRequest()));
-        return $urlBuilder->reset()->setCreateAbsoluteUri(true)->uriFor(
+        $httpRequest = new ServerRequest('GET', '');
+        $request = $this->actionRequestFactory->createActionRequest($httpRequest);
+        $uriBuilder = new UriBuilder();
+        $uriBuilder->setRequest($request);
+        return $uriBuilder->reset()->setCreateAbsoluteUri(true)->uriFor(
             $actionName,
             $controllerArguments,
             $controllerName,

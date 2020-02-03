@@ -1,9 +1,10 @@
 <?php
+
 namespace GesagtGetan\KrakenOptimizer\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Http\Uri;
+use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Client;
 use Neos\Flow\ObjectManagement\ObjectManagerInterface;
 use Neos\Flow\Package\PackageManager;
@@ -25,78 +26,57 @@ use Psr\Log\LoggerInterface;
  */
 class ResourceService implements ResourceServiceInterface
 {
+    const TEMP_FOLDER_NAME = 'OptimizedImagesTemp';
     /**
      * @Flow\Inject
      * @var LoggerInterface
      */
     protected $systemLogger;
-
     /**
      * @Flow\Inject
      * @var Client
      */
     protected $guzzleHttpClient;
-
     /**
      * @Flow\Inject
      * @var Environment
      */
     protected $environment;
-
     /**
      * @Flow\Inject
      * @var ThumbnailRepository
      */
     protected $thumbnailRepository;
-
     /**
      * @Flow\Inject
      * @var ResourceManager
      */
     protected $resourceManager;
-
     /**
      * @Flow\Inject
      * @var PackageManager
      */
     protected $packageManager;
-
     /**
      * @Flow\Inject
      * @var ObjectManagerInterface
      */
     protected $objectManager;
-
-    /**
-     * @Flow\Inject
-     * @var ContentCache
-     */
-    protected $contentCache;
-
     /**
      * @Flow\Inject
      * @var EntityManagerInterface
      */
     protected $entityManager;
-
     /**
      * @Flow\Inject
      * @var PersistenceManagerInterface
      */
     protected $persistenceManager;
-
-    /**
-     * @var PersistentResource
-     */
-    protected $optimizedResource;
-
     /**
      * @Flow\Inject
      * @var AssetService
      */
     protected $assetService;
-
-    const TEMP_FOLDER_NAME = 'OptimizedImagesTemp';
 
     /**
      * Replaced the resource of the thumbnail with a new resource object
@@ -113,14 +93,14 @@ class ResourceService implements ResourceServiceInterface
         if (!isset($krakenIoResult['kraked_url'])) {
             throw new Exception(
                 'No URL to optimized resource present in response from Kraken API for ' .
-                '(' . $originalFilename .')',
+                '(' . $originalFilename . ')',
                 1526371191
             );
         }
 
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
             $this->systemLogger->debug('No optimization necessary for file ' .
-                $originalFilename . ' (' . $krakenIoResult['resourceIdentifier'] .')');
+                $originalFilename . ' (' . $krakenIoResult['resourceIdentifier'] . ')');
 
             return;
         }
@@ -128,27 +108,21 @@ class ResourceService implements ResourceServiceInterface
         try {
             $resource = $this->getOptimizedResource($krakenIoResult['kraked_url'], $originalFilename);
 
-            $thumbnail->setResource($resource);
+            if ($resource instanceof PersistentResource) {
 
-            $this->thumbnailRepository->update($thumbnail);
-            $this->assetService->emitAssetResourceReplaced($thumbnail->getOriginalAsset());
+                $thumbnail->setResource($resource);
 
-            $originalResource = $thumbnail->getResource();
-            $otherAffectedThumbnails = $this->getThumbnailsByResource($originalResource);
+                $this->thumbnailRepository->update($thumbnail);
+                $this->assetService->emitAssetResourceReplaced($thumbnail->getOriginalAsset());
 
-            foreach ($otherAffectedThumbnails as $affectedThumbnail) {
-                $affectedThumbnail->setResource($resource);
-                $this->thumbnailRepository->update($affectedThumbnail);
-                $this->assetService->emitAssetResourceReplaced($affectedThumbnail->getOriginalAsset());
+                $this->systemLogger->debug(
+                    'Replaced ' .
+                    $originalFilename .
+                    ' (' . $krakenIoResult['resourceIdentifier'] . ')' .
+                    ' with optimized version from Kraken. Saved ' .
+                    $krakenIoResult['saved_bytes'] . ' bytes!'
+                );
             }
-
-            $this->systemLogger->debug(
-                'Replaced ' .
-                $originalFilename .
-                ' (' . $krakenIoResult['resourceIdentifier'] .')' .
-                ' with optimized version from Kraken. Saved ' .
-                $krakenIoResult['saved_bytes'] . ' bytes!'
-            );
         } catch (\Exception $e) {
             throw new Exception(
                 'Could not retrieve and / or write image from Kraken for ' . $originalFilename .
@@ -156,6 +130,38 @@ class ResourceService implements ResourceServiceInterface
                 1526327172
             );
         }
+    }
+
+    /**
+     * @param string $uri
+     * @param string $originalFilename
+     * @return PersistentResource
+     * @throws Exception
+     */
+    public function getOptimizedResource(string $uri, string $originalFilename): PersistentResource
+    {
+        $optimizedResource = null;
+        try {
+            $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
+            Utility\Files::createDirectoryRecursively($temporaryPath);
+            $temporaryPathAndFilename = $temporaryPath . $originalFilename;
+
+            $response = $this->guzzleHttpClient->get($uri, ['sink' => $temporaryPathAndFilename]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new Exception('URI to optimized image could not be resolved', 1563577626);
+            }
+
+            $optimizedResource = $this->resourceManager->importResource($temporaryPathAndFilename);
+        } catch (\Neos\Flow\Utility\Exception $e) {
+
+        } catch (Utility\Exception\FilesException $e) {
+
+        } catch (\Neos\Flow\ResourceManagement\Exception $e) {
+
+        }
+
+        return $optimizedResource;
     }
 
     /**
@@ -174,25 +180,6 @@ class ResourceService implements ResourceServiceInterface
         );
 
         return $query->getResult();
-    }
-
-    public function getOptimizedResource(string $uri, string $originalFilename): PersistentResource
-    {
-        if (!isset($this->optimizedResource) || !($this->optimizedResource instanceof PersistentResource)) {
-            $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
-            Utility\Files::createDirectoryRecursively($temporaryPath);
-            $temporaryPathAndFilename = $temporaryPath . $originalFilename;
-
-            $response = $this->guzzleHttpClient->get($uri, ['sink' => $temporaryPathAndFilename]);
-
-            if ($response->getStatusCode() !== 200) {
-                throw new Exception('URI to optimized image could not be resolved', 1563577626);
-            }
-
-            $this->optimizedResource = $this->resourceManager->importResource($temporaryPathAndFilename);
-        }
-
-        return $this->optimizedResource;
     }
 
     protected function addRedirectAndDelete(PersistentResource $originalResource, PersistentResource $newResource)

@@ -126,10 +126,14 @@ class KrakenCommandController extends CommandController
             }
 
             try {
-                $krakenIoResult = json_decode(
-                    $this->krakenService->requestOptimizedResource($thumbnailResource),
-                    true
-                );
+                if($thumbnailResource->getStream()) {
+                    $krakenIoResult = json_decode(
+                        $this->krakenService->requestOptimizedResource($thumbnailResource),
+                        true
+                    );
+                } else {
+                    $krakenIoResult = false;
+                }
             } catch (\Exception $exception) {
                 throw new Exception(
                     'Failed to get optimized version for ' . $thumbnailResource->getFileName() . '. ' .
@@ -138,11 +142,13 @@ class KrakenCommandController extends CommandController
                 );
             }
 
-            $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
-            $krakenIoResult['resourceIdentifier'] = $thumbnailResource->getSha1();
-            $savedBytes += $krakenIoResult['saved_bytes'];
+            if($krakenIoResult) {
+                $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
+                $krakenIoResult['resourceIdentifier'] = $thumbnailResource->getSha1();
+                $savedBytes += $krakenIoResult['saved_bytes'];
 
-            $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+                $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+            }
 
             $this->output->progressAdvance(1);
             $iteration++;
