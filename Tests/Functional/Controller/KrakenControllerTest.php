@@ -120,7 +120,7 @@ class KrakenControllerTest extends FunctionalTestCase
             'resourceIdentifier' => $thumbnails[0]->getResource()->getSha1(),
             'originalFilename' => $testResource->getFilename(),
             'verificationToken' => $this->krakenService->createToken($testResource->getFilename()),
-            'kraked_url' => $optimizedTestResourcePublicUri,
+            'kraked_url' => 'https://raw.githubusercontent.com/gesagtgetan/GesagtGetan.KrakenOptimizer/master/Tests/Functional/Fixtures/Resources/TestImage_Optimized.jpg',
             'saved_bytes' => '12990'
         ];
 
