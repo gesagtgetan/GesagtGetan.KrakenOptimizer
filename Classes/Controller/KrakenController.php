@@ -10,6 +10,7 @@ use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
+use Neos\Flow\ResourceManagement\ResourceManager;
 use Neos\Media\Domain\Model\Thumbnail;
 
 /**
@@ -47,6 +48,12 @@ class KrakenController extends ActionController
      * @var PersistenceManagerInterface
      */
     protected $persistenceManager;
+
+    /**
+     * @Flow\Inject
+     * @var ResourceManager
+     */
+    protected $resourceManager;
 
     /**
      * Replaces the local file within the file system with the optimized image delivered by Kraken.
