@@ -115,9 +115,6 @@ class KrakenControllerTest extends FunctionalTestCase
             5
         );
 
-        // fake optimized resource, no external request to kraken is happening
-        $this->inject($this->resourceService, 'optimizedResource', $optimizedTestResource);
-
         $payload = [
             'success' => 'true',
             'resourceIdentifier' => $thumbnails[0]->getResource()->getSha1(),
@@ -132,9 +129,6 @@ class KrakenControllerTest extends FunctionalTestCase
         foreach ($thumbnails as $thumbnail) {
             $this->assertEquals($optimizedTestResource->getSha1(), $thumbnail->getResource()->getSha1());
         }
-
-        // restore initial state
-        $this->inject($this->resourceService, 'optimizedResource', null);
     }
 
     /**
