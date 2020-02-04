@@ -11,6 +11,13 @@ jobs:
           name: Disable PHP memory limit
           command: echo 'memory_limit=-1' | sudo tee -a /usr/local/etc/php/php.ini
       - run:
+          name: Install PHP GD extension
+          command: |
+            sudo apt update
+            sudo apt install -y libpng-dev libjpeg62-turbo-dev
+            sudo docker-php-ext-configure gd --with-jpeg-dir=/usr/include/
+            sudo docker-php-ext-install gd
+      - run:
           name: Set up neos
           command: composer create-project --no-install neos/neos-base-distribution . ${NEOS_VERSION}
       - checkout:
