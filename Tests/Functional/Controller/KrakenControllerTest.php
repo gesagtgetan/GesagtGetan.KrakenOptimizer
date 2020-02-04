@@ -154,7 +154,7 @@ class KrakenControllerTest extends FunctionalTestCase
             'resourceIdentifier' => $thumbnail->getResource()->getSha1(),
             'originalFilename' => $testResource->getFilename(),
             'verificationToken' => $this->krakenService->createToken($testResource->getFilename()),
-            'kraked_url' => 'https://dl.kraken.io/web/5ad0990c18e2b106322e41e175ad1165/ImageNotFound.jpg',
+            'kraked_url' => 'https://this.url.does.not.exist/ImageNotFound.jpg',
             'saved_bytes' => '12990'
         ];
 
