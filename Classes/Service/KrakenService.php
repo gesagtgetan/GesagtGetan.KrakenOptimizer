@@ -13,6 +13,7 @@ use Neos\Flow\Mvc\Routing\UriBuilder;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Exception;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Flow\Scope("singleton")
@@ -76,6 +77,12 @@ class KrakenService implements KrakenServiceInterface
     protected $actionRequestFactory;
 
     /**
+     * @Flow\Inject
+     * @var LoggerInterface
+     */
+    protected $systemLogger;
+
+    /**
      * @param array $settings
      */
     public function injectSettings(array $settings)
@@ -104,8 +111,9 @@ class KrakenService implements KrakenServiceInterface
             );
         }
 
-        $krakenOptions = array_merge(['wait' => true], $this->krakenOptionsFromSettings);
-        $krakenOptions = array_merge($krakenOptionsOverride, $krakenOptions);
+        $krakenOptions = array_merge($this->krakenOptionsFromSettings, ['wait' => true], $krakenOptionsOverride);
+
+        $this->systemLogger->debug('Request optimized resource from Kraken.io', ['krakenOptions' => $krakenOptions]);
 
         return $this->guzzleHttpClient->request(
             'POST',
