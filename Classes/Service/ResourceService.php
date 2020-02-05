@@ -1,123 +1,221 @@
 <?php
+
 namespace GesagtGetan\KrakenOptimizer\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Neos\Flow\Annotations as Flow;
-use Neos\Flow\Log\SystemLoggerInterface;
+use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Client;
+use Neos\Flow\ObjectManagement\ObjectManagerInterface;
+use Neos\Flow\Package\PackageManager;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
+use Neos\Flow\ResourceManagement\PersistentResource;
+use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Fusion\Core\Cache\ContentCache;
+use Neos\Media\Domain\Model\Thumbnail;
+use Neos\Media\Domain\Repository\ThumbnailRepository;
+use Neos\Media\Domain\Service\AssetService;
 use Neos\Utility;
 use Neos\Flow\Utility\Environment;
 use Neos\Flow\Exception;
+use Neos\RedirectHandler\Storage\RedirectStorageInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Flow\Scope("singleton")
  */
 class ResourceService implements ResourceServiceInterface
 {
+    const TEMP_FOLDER_NAME = 'OptimizedImagesTemp';
     /**
      * @Flow\Inject
-     * @var SystemLoggerInterface
+     * @var LoggerInterface
      */
     protected $systemLogger;
-
     /**
      * @Flow\Inject
      * @var Client
      */
     protected $guzzleHttpClient;
-
     /**
      * @Flow\Inject
      * @var Environment
      */
     protected $environment;
-
-    const TEMP_FOLDER_NAME = 'OptimizedImagesTemp';
+    /**
+     * @Flow\Inject
+     * @var ThumbnailRepository
+     */
+    protected $thumbnailRepository;
+    /**
+     * @Flow\Inject
+     * @var ResourceManager
+     */
+    protected $resourceManager;
+    /**
+     * @Flow\Inject
+     * @var PackageManager
+     */
+    protected $packageManager;
+    /**
+     * @Flow\Inject
+     * @var ObjectManagerInterface
+     */
+    protected $objectManager;
+    /**
+     * @Flow\Inject
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+    /**
+     * @Flow\Inject
+     * @var PersistenceManagerInterface
+     */
+    protected $persistenceManager;
+    /**
+     * @Flow\Inject
+     * @var AssetService
+     */
+    protected $assetService;
 
     /**
-     * Replaces the local file within the file system with the optimized image delivered by Kraken.
+     * Replaced the resource of the thumbnail with a new resource object
+     * containing the optimized image delivered by Kraken.
      *
-     * Copies the optimized file to a temporary folder first, to prevent possible racing conditions when the service
-     * responds very fast.
-     *
+     * @param Thumbnail $thumbnail
      * @param array $krakenIoResult
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      */
-    public function replaceLocalFile(array $krakenIoResult)
+    public function replaceThumbnailResource(Thumbnail $thumbnail, array $krakenIoResult)
     {
-        // originalFilename is unimportant, only used for better debug message
-        $originalFilename = isset($krakenIoResult['originalFilename']) ? $krakenIoResult['originalFilename'] : '';
-
-        if (!isset($krakenIoResult['file_name']) || !self::isSha1($krakenIoResult['file_name'])) {
-            throw new Exception(
-                'Invalid or no file name was returned for resource ' . '('
-                . $originalFilename .')' . ' by Kraken API',
-                1526371181
-            );
-        }
+        $originalFilename = $krakenIoResult['originalFilename'];
 
         if (!isset($krakenIoResult['kraked_url'])) {
             throw new Exception(
                 'No URL to optimized resource present in response from Kraken API for ' .
-                '(' . $originalFilename .')',
+                '(' . $originalFilename . ')',
                 1526371191
             );
         }
 
-        // represents SHA1 hash
-        $fileName = $krakenIoResult['file_name'];
-
         if (isset($krakenIoResult['saved_bytes']) && $krakenIoResult['saved_bytes'] === 0) {
-            $this->systemLogger->log(
-                'No optimization necessary for file ' . $originalFilename . ' (' . $fileName .')',
-                LOG_DEBUG
-            );
+            $this->systemLogger->debug('No optimization necessary for file ' .
+                $originalFilename . ' (' . $krakenIoResult['resourceIdentifier'] . ')');
 
             return;
         }
 
         try {
-            $pathAndFilename = self::getFilePathForSha1($fileName);
-            $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
-            Utility\Files::createDirectoryRecursively($temporaryPath);
-            $temporaryPathAndFilename = $temporaryPath . $fileName;
+            $resource = $this->getOptimizedResource($krakenIoResult['kraked_url'], $originalFilename);
 
-            $this->guzzleHttpClient->get($krakenIoResult['kraked_url'], ['sink' => $temporaryPathAndFilename]);
+            if ($resource instanceof PersistentResource) {
+                $thumbnail->setResource($resource);
 
-            rename($temporaryPathAndFilename, $pathAndFilename);
+                $this->thumbnailRepository->update($thumbnail);
+                $this->assetService->emitAssetResourceReplaced($thumbnail->getOriginalAsset());
 
-            $this->systemLogger->log(
-                'Replaced ' . $originalFilename . ' (' . $fileName .')' .
-                ' with optimized version from Kraken. Saved ' . $krakenIoResult['saved_bytes'] . ' bytes!',
-                LOG_DEBUG
-            );
+                $this->systemLogger->debug(
+                    'Replaced ' .
+                    $originalFilename .
+                    ' (' . $krakenIoResult['resourceIdentifier'] . ')' .
+                    ' with optimized version from Kraken. Saved ' .
+                    $krakenIoResult['saved_bytes'] . ' bytes!'
+                );
+            }
         } catch (\Exception $e) {
             throw new Exception(
-                'Could not retrieve and / or write image from Kraken for ' . $fileName . '. ' . $e->getMessage(),
+                'Could not retrieve and / or write image from Kraken for ' . $originalFilename .
+                '. ' . $e->getMessage(),
                 1526327172
             );
         }
     }
 
     /**
-     * Return physical file path for Sha1 of resource.
-     *
-     * @param string $sha1
-     * @return string
+     * @param string $uri
+     * @param string $originalFilename
+     * @return PersistentResource
+     * @throws Exception
+     * @throws Utility\Exception\FilesException
+     * @throws \Neos\Flow\ResourceManagement\Exception
+     * @throws \Neos\Flow\Utility\Exception
      */
-    private static function getFilePathForSha1(string $sha1): string
+    public function getOptimizedResource(string $uri, string $originalFilename): PersistentResource
     {
-        return FLOW_PATH_DATA . 'Persistent/Resources/' .
-            $sha1[0] . '/' . $sha1[1] . '/' . $sha1[2] . '/' . $sha1[3] . '/' . $sha1;
+        $optimizedResource = null;
+        $temporaryPath = $this->environment->getPathToTemporaryDirectory() . self::TEMP_FOLDER_NAME . '/';
+        Utility\Files::createDirectoryRecursively($temporaryPath);
+        $temporaryPathAndFilename = $temporaryPath . $originalFilename;
+
+        $response = $this->guzzleHttpClient->get($uri, ['sink' => $temporaryPathAndFilename]);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new Exception('URI to optimized image could not be resolved', 1563577626);
+        }
+
+        $optimizedResource = $this->resourceManager->importResource($temporaryPathAndFilename);
+
+        return $optimizedResource;
     }
 
     /**
-     * Check if a given string is a valid SHA1 hash.
-     *
-     * @param string $sha1
-     * @return bool
+     * @param PersistentResource $resource
+     * @return Thumbnail[]
      */
-    private static function isSha1(string $sha1)
+    public function getThumbnailsByResource(PersistentResource $resource): array
     {
-        return (is_string($sha1) && preg_match('/[A-Fa-f0-9]{40}/', $sha1) === 1);
+        // Look for other thumbnails with the same resource
+        $query = $this->entityManager->createQuery(
+            'SELECT t FROM \Neos\Media\Domain\Model\Thumbnail t WHERE t.resource = :originalResource'
+        );
+        $query->setParameter(
+            'originalResource',
+            $resource
+        );
+
+        return $query->getResult();
+    }
+
+    protected function addRedirectAndDelete(PersistentResource $originalResource, PersistentResource $newResource)
+    {
+
+        // Add redirect from the old resource path to the new resource path
+        // TODO doesn't work with foreign url's like Google Cloud Storage
+        // $this->addRedirect($originalResource, $resource);
+
+        // NOTE: Should be okay, let's add a flag to disable redirect generation
+        // or keep the original resource if we can not create a redirect.
+        // Maybe we can check where the resource is located and only create redirect for local resources?
+
+        // Remove the old resource (happens automatically if not used anymore?)
+        $this->resourceManager->deleteResource($originalResource);
+    }
+
+    /**
+     * Adds a redirect from the old resource to the new resource
+     *
+     * @param PersistentResource $originalAssetResource
+     * @param PersistentResource $newAssetResource
+     */
+    private function addRedirect(PersistentResource $originalAssetResource, PersistentResource $newAssetResource)
+    {
+        $redirectHandlerEnabled = $this->packageManager->isPackageAvailable('Neos.RedirectHandler');
+        if ($redirectHandlerEnabled) {
+            $originalAssetResourceUri = new Uri(
+                $this->resourceManager->getPublicPersistentResourceUri($originalAssetResource)
+            );
+            $newAssetResourceUri = new Uri($this->resourceManager->getPublicPersistentResourceUri($newAssetResource));
+
+            /** @var RedirectStorageInterface $redirectStorage */
+            $redirectStorage = $this->objectManager->get(RedirectStorageInterface::class);
+            $existingRedirect = $redirectStorage->getOneBySourceUriPathAndHost($originalAssetResourceUri);
+            if ($existingRedirect === null) {
+                $redirectStorage->addRedirect(
+                    $originalAssetResourceUri->getPath(),
+                    $newAssetResourceUri->getPath(),
+                    301
+                );
+            }
+        }
     }
 }

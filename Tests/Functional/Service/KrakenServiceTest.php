@@ -1,8 +1,8 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Tests\Functional\Service;
 
-use Neos\Flow\ResourceManagement\PersistentResource;
 use GesagtGetan\KrakenOptimizer\Service\KrakenService;
+use Neos\Flow\ResourceManagement\PersistentResource;
 use Neos\Flow\Tests\FunctionalTestCase;
 use Neos\Flow\ResourceManagement\ResourceManager;
 
@@ -24,11 +24,11 @@ class KrakenServiceTest extends FunctionalTestCase
     protected $krakenService;
 
     /**
-     * @var Resource
+     * @var PersistentResource
      */
     protected $testResource;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -40,6 +40,9 @@ class KrakenServiceTest extends FunctionalTestCase
     }
 
     /**
+     * Successful resource replacement is covered within the KrakenController test case.
+     * This case just checks if a valid kraken request / response is generated.
+     *
      * @test
      */
     public function apiRequestWithArbitraryResourceReturnsSuccessfulResponse()
@@ -49,6 +52,10 @@ class KrakenServiceTest extends FunctionalTestCase
             true
         );
 
+        // not much sensseful to check here, since kraken generates mostly random data in dev mode
         $this->assertTrue($response['success']);
+        $this->assertIsString($response['file_name']);
+        $this->assertIsString($response['kraked_url']);
+        $this->assertIsInt($response['saved_bytes']);
     }
 }

@@ -3,23 +3,19 @@ namespace GesagtGetan\KrakenOptimizer\Command;
 
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
-use Neos\Flow\Log\SystemLoggerInterface;
+use Neos\Flow\ResourceManagement\PersistentResource;
+use Neos\Media\Domain\Model\Thumbnail;
 use Neos\Media\Domain\Repository\ThumbnailRepository;
 use Neos\Media\Domain\Service\ThumbnailService;
 use GesagtGetan\KrakenOptimizer\Service\ResourceServiceInterface;
 use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
+use Neos\Flow\Exception;
 
 /**
  * @Flow\Scope("singleton")
  */
 class KrakenCommandController extends CommandController
 {
-    /**
-     * @Flow\Inject
-     * @var SystemLoggerInterface
-     */
-    protected $systemLogger;
-
     /**
      * @Flow\Inject
      * @var ThumbnailRepository
@@ -80,7 +76,7 @@ class KrakenCommandController extends CommandController
      *
      * @param int $offset offset to start optimization (useful when optimization previously stopped
      *                    at a certain thumbnail)
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      */
     public function optimizeCommand(int $offset = 0)
     {
@@ -114,13 +110,15 @@ class KrakenCommandController extends CommandController
             }
         }
 
+        /** @var Thumbnail $thumbnail */
         foreach ($this->thumbnailRepository->iterate($iterator) as $thumbnail) {
             $originalAssetResource = $thumbnail->getOriginalAsset()->getResource();
+            /** @var PersistentResource $thumbnailResource */
             $thumbnailResource = $thumbnail->getResource();
 
             if ($thumbnailResource === null ||
                 $iteration < $offset ||
-                $this->krakenService->shouldOptimize($thumbnailResource, $originalAssetResource) === false
+                $this->krakenService->shouldOptimize($originalAssetResource, $thumbnailResource) === false
             ) {
                 $this->output->progressAdvance(1);
                 $iteration++;
@@ -128,22 +126,30 @@ class KrakenCommandController extends CommandController
             }
 
             try {
-                $krakenIoResult = json_decode(
-                    $this->krakenService->requestOptimizedResource($thumbnailResource, ['wait' => true]),
-                    true
-                );
+                if ($thumbnailResource->getStream()) {
+                    $krakenIoResult = json_decode(
+                        $this->krakenService->requestOptimizedResource($thumbnailResource),
+                        true
+                    );
+                } else {
+                    $krakenIoResult = false;
+                }
             } catch (\Exception $exception) {
-                throw new \Neos\Flow\Exception(
+                throw new Exception(
                     'Failed to get optimized version for ' . $thumbnailResource->getFileName() . '. ' .
                     'Original Message: ' . $exception->getMessage(),
                     1524251845
                 );
             }
 
-            $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
-            $savedBytes += $krakenIoResult['saved_bytes'];
+            if ($krakenIoResult) {
+                $krakenIoResult['originalFilename'] = $thumbnailResource->getFileName();
+                $krakenIoResult['resourceIdentifier'] = $thumbnailResource->getSha1();
+                $savedBytes += $krakenIoResult['saved_bytes'];
 
-            $this->resourceService->replaceLocalFile($krakenIoResult);
+                $this->resourceService->replaceThumbnailResource($thumbnail, $krakenIoResult);
+            }
+
             $this->output->progressAdvance(1);
             $iteration++;
         }

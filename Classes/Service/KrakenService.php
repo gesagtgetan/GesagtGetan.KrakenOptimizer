@@ -1,13 +1,19 @@
 <?php
 namespace GesagtGetan\KrakenOptimizer\Service;
 
+use Doctrine\ORM\EntityManagerInterface;
+use GuzzleHttp\Psr7\ServerRequest;
 use Neos\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
+use Neos\Flow\Mvc\ActionRequestFactory;
+use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use GuzzleHttp\Psr7;
 use Neos\Flow\Mvc\Routing\UriBuilder;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Mvc\ActionRequest;
+use Neos\Flow\Exception;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Flow\Scope("singleton")
@@ -23,7 +29,7 @@ class KrakenService implements KrakenServiceInterface
     /**
      * @var array
      */
-    protected $krakenOptions;
+    protected $krakenOptionsFromSettings;
 
     /**
      * @var string
@@ -53,34 +59,61 @@ class KrakenService implements KrakenServiceInterface
     protected $optimizeOriginalResource;
 
     /**
+     * @Flow\Inject
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+
+    /**
+     * @Flow\Inject
+     * @var PersistenceManagerInterface
+     */
+    protected $persistenceManager;
+
+    /**
+     * @Flow\Inject
+     * @var ActionRequestFactory
+     */
+    protected $actionRequestFactory;
+
+    /**
+     * @Flow\Inject
+     * @var LoggerInterface
+     */
+    protected $systemLogger;
+
+    /**
      * @param array $settings
      */
     public function injectSettings(array $settings)
     {
-        $this->krakenOptions = $settings['krakenOptions'];
+        $this->krakenOptionsFromSettings = $settings['krakenOptions'];
         $this->apiKey = $settings['krakenOptions']['auth']['api_key'];
         $this->optimizeOriginalResource = $settings['optimizeOriginalResource'];
     }
 
     /**
-     * Request optimized resource from Kraken.
+     * Request optimized resource from Kraken and wait for optimized resource in response.
      *
      * @param PersistentResource $thumbnail
-     * @param array $krakenOptions
+     * @param array $krakenOptionsOverride
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      */
-    public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptions = []): string
+    public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptionsOverride = []): string
     {
-        if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
-            throw new \Neos\Flow\Exception(
+        if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) ||
+            !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
+            throw new Exception(
                 'Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ',
                 1524401129
             );
         }
 
-        $krakenOptions = array_merge($krakenOptions, $this->krakenOptions);
+        $krakenOptions = array_merge($this->krakenOptionsFromSettings, ['wait' => true], $krakenOptionsOverride);
+
+        $this->systemLogger->debug('Request optimized resource from Kraken.io', ['krakenOptions' => $krakenOptions]);
 
         return $this->guzzleHttpClient->request(
             'POST',
@@ -104,39 +137,42 @@ class KrakenService implements KrakenServiceInterface
      * Request optimized resource from Kraken and also define callback URL
      * for asynchronous image replacement.
      *
-     * @param PersistentResource $thumbnail
+     * @param PersistentResource $resource
      * @return string the response as JSON containing the Id of the async call
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
-    public function requestOptimizedResourceAsynchronously(PersistentResource $thumbnail): string
+    public function requestOptimizedResourceAsynchronously(PersistentResource $resource): string
     {
-        if (!isset($this->krakenOptions['auth']['api_key']) || !isset($this->krakenOptions['auth']['api_secret'])) {
-            throw new \Neos\Flow\Exception(
-                'Kraken requires ``api_key`` and ``api_secret`` to be definied in settings ',
+        if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) ||
+            !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
+            throw new Exception(
+                'Kraken requires ``api_key`` and ``api_secret`` to be defined in settings ',
                 1524401129
             );
         }
 
         $krakenOptions = [
+            'wait' => false,
             'callback_url' => $this->generateUri(
-                'replaceLocalFile',
+                'replaceThumbnailResource',
                 'Kraken',
                 'GesagtGetan.KrakenOptimizer',
                 [
-                    'originalFilename' => $thumbnail->getFilename(),
-                    'verificationToken' => $this->createToken($thumbnail->getSha1())
+                    'originalFilename' => $resource->getFilename(),
+                    'resourceIdentifier' => $this->persistenceManager->getIdentifierByObject($resource),
+                    'verificationToken' => $this->createToken($resource->getFilename())
                 ]
             )
         ];
 
-        return $this->requestOptimizedResource($thumbnail, $krakenOptions);
+        return $this->requestOptimizedResource($resource, $krakenOptions);
     }
 
     /**
-     * Check if flag is set to allow optimization of original resources that are too small
-     * or just the right size, so no thumbnail was generated.
+     * Check if flag is set to allow optimization for original resources.
+     * If flag is not set, check if original sized image is used as thumbnail and do not optimize.
      *
      * @param PersistentResource $originalResource
      * @param PersistentResource $thumbnail
@@ -157,7 +193,7 @@ class KrakenService implements KrakenServiceInterface
      * Creates the verification token for securing callback calls.
      *
      * @param string $filename
-     * @throws \Neos\Flow\Exception
+     * @throws Exception
      * @return string
      */
     public function createToken(string $filename): string
@@ -165,7 +201,7 @@ class KrakenService implements KrakenServiceInterface
         $token = password_hash($this->apiKey . $filename, PASSWORD_BCRYPT, ['cost' => self::BCRYPT_COST]);
 
         if ($token === false) {
-            throw new \Neos\Flow\Exception('Could not generate verfication token', 1525948005);
+            throw new Exception('Could not generate verfication token', 1525948005);
         }
 
         return password_hash($this->apiKey . $filename, PASSWORD_BCRYPT, ['cost' => self::BCRYPT_COST]);
@@ -189,6 +225,11 @@ class KrakenService implements KrakenServiceInterface
      * @param string $packageKey
      * @param array $controllerArguments
      * @return string
+     * @throws \Neos\Flow\Http\Exception
+     * @throws \Neos\Flow\Mvc\Exception\InvalidActionNameException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentNameException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidArgumentTypeException
+     * @throws \Neos\Flow\Mvc\Exception\InvalidControllerNameException
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
     protected function generateUri(
@@ -197,10 +238,11 @@ class KrakenService implements KrakenServiceInterface
         string $packageKey,
         array $controllerArguments = []
     ): string {
-        $urlBuilder = new UriBuilder();
-        $requestHandler = $this->bootstrap->getActiveRequestHandler();
-        $urlBuilder->setRequest(new ActionRequest($requestHandler->getHttpRequest()));
-        return $urlBuilder->reset()->setCreateAbsoluteUri(true)->uriFor(
+        $httpRequest = new ServerRequest('GET', '');
+        $request = $this->actionRequestFactory->createActionRequest($httpRequest);
+        $uriBuilder = new UriBuilder();
+        $uriBuilder->setRequest($request);
+        return $uriBuilder->reset()->setCreateAbsoluteUri(true)->uriFor(
             $actionName,
             $controllerArguments,
             $controllerName,

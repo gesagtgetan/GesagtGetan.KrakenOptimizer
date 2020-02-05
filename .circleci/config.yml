@@ -2,7 +2,7 @@ version: 2
 jobs:
   neos-X: &base
     docker:
-      - image: circleci/php:7.1
+      - image: circleci/php:7.3
     steps:
       - restore_cache:
           keys:
@@ -11,13 +11,20 @@ jobs:
           name: Disable PHP memory limit
           command: echo 'memory_limit=-1' | sudo tee -a /usr/local/etc/php/php.ini
       - run:
+          name: Install PHP GD extension
+          command: |
+            sudo apt update
+            sudo apt install -y libpng-dev libjpeg62-turbo-dev
+            sudo docker-php-ext-configure gd --with-jpeg-dir=/usr/include/
+            sudo docker-php-ext-install gd
+      - run:
           name: Set up neos
           command: composer create-project --no-install neos/neos-base-distribution . ${NEOS_VERSION}
       - checkout:
           path: DistributionPackages/GesagtGetan.KrakenOptimizer
       - run:
           name: Require dependencies
-          command: composer require --no-update gesagtgetan/krakenoptimizer squizlabs/php_codesniffer
+          command: composer require --no-update gesagtgetan/krakenoptimizer:@dev squizlabs/php_codesniffer
       - run:
           name: Install dependencies
           command: composer install --no-interaction --prefer-dist
@@ -30,18 +37,13 @@ jobs:
           command: ./bin/phpcs -sw --standard=PSR2 ./DistributionPackages/GesagtGetan.KrakenOptimizer/Classes ./DistributionPackages/GesagtGetan.KrakenOptimizer/Tests
       - run:
           name: Run PHPUnit tests
-          command: ./bin/phpunit -c Packages/Plugins/GesagtGetan.KrakenOptimizer/Tests/AllTests.xml
-  neos-3:
+          command: FLOW_CONTEXT="Testing" ./bin/phpunit -c Packages/Plugins/GesagtGetan.KrakenOptimizer/Tests/AllTests.xml
+  neos-5:
     <<: *base
     environment:
-      NEOS_VERSION: 3.*
-  neos-4:
-    <<: *base
-    environment:
-      NEOS_VERSION: 4.*
+      NEOS_VERSION: 5.*
 workflows:
   version: 2
   workflow:
     jobs:
-      - neos-3
-      - neos-4
+      - neos-5

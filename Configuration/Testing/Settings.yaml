@@ -5,3 +5,4 @@ GesagtGetan:
         api_key: '123456789'
         api_secret: '123456789'
       dev: true
+    liveOptimization: false
