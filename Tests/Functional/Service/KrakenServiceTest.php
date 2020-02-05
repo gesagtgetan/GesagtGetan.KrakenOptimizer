@@ -48,6 +48,8 @@ class KrakenServiceTest extends FunctionalTestCase
 
         $this->krakenService = $this->objectManager->get(KrakenService::class);
         $this->resourceManager = $this->objectManager->get(ResourceManager::class);
+        $this->thumbnailRepository = $this->objectManager->get(ThumbnailRepository::class);
+        $this->thumbnailService = $this->objectManager->get(ThumbnailService::class);
         $svgContent = '<svg xmlns="http://www.w3.org/2000/svg" height="30" width="200">' .
             '<text x="0" y="15" fill="red">Test SVG</text></svg>';
         $this->testResource = $this->resourceManager->importResourceFromContent($svgContent, 'svg1526213193.svg');
@@ -61,14 +63,20 @@ class KrakenServiceTest extends FunctionalTestCase
      */
     public function apiRequestWithArbitraryResourceReturnsSuccessfulResponse()
     {
-        $thumbnails = $this->generateFakeThumbnails(
-            $this->testResource,
-            new ThumbnailConfiguration(50, 50, 50, 50),
-            5
-        );
+        $image = new Image($this->testResource);
+        $thumbnail = new Thumbnail($image, new ThumbnailConfiguration(
+            50,
+            50,
+            50,
+            50,
+            false,
+            false,
+            false,
+            1
+        ));
 
         $response = json_decode(
-            $this->krakenService->requestOptimizedResource($thumbnails[0]->getResource(), ['wait' => true]),
+            $this->krakenService->requestOptimizedResource($thumbnail, ['wait' => true]),
             true
         );
 
