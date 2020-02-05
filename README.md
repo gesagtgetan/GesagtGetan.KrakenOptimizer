@@ -8,6 +8,7 @@ Image optimizer for Neos utilizing the Kraken API
 |---------|----------|
 | 1.x     | 2.3 LTS  |
 | 2.x     | 3.x, 4.x |
+| 3.x     | 5.x      |
 
 ## Installation
 
