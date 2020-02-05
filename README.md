@@ -31,7 +31,12 @@ GesagtGetan:
 ```
 ## Usage
 
-1. We usually want to optimize all existing resources. We can do this by running this CLI command 
+#### Warning:
+> ⚠ As with any plugin that actively works on your database and resources it is a good idea to make sure you keep 
+regular backups for your website. No known disasters have been caused by this plugin, but it's always better to be
+safe than sorry. 
+
+1. We usually want to optimize all existing resources. We can do this by running this CLI command
 ```
 ./flow kraken:optimize
 ```
