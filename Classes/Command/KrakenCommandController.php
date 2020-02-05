@@ -117,6 +117,7 @@ class KrakenCommandController extends CommandController
             $thumbnailResource = $thumbnail->getResource();
 
             if ($thumbnailResource === null ||
+                !$thumbnailResource->getStream() ||
                 $iteration < $offset ||
                 $this->krakenService->shouldOptimize($originalAssetResource, $thumbnailResource) === false
             ) {
@@ -126,14 +127,10 @@ class KrakenCommandController extends CommandController
             }
 
             try {
-                if ($thumbnailResource->getStream()) {
-                    $krakenIoResult = json_decode(
-                        $this->krakenService->requestOptimizedResource($thumbnailResource),
-                        true
-                    );
-                } else {
-                    $krakenIoResult = false;
-                }
+                $krakenIoResult = json_decode(
+                    $this->krakenService->requestOptimizedResource($thumbnail),
+                    true
+                );
             } catch (\Exception $exception) {
                 throw new Exception(
                     'Failed to get optimized version for ' . $thumbnailResource->getFileName() . '. ' .

@@ -1,0 +1,4 @@
+GesagtGetan_KrakenOptimizer_LiveOptimization:
+  frontend: Neos\Cache\Frontend\StringFrontend
+  backend: Neos\Cache\Backend\FileBackend
+  persistent: true

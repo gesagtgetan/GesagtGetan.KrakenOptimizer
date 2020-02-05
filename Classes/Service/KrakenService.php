@@ -5,6 +5,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Psr7\ServerRequest;
 use Neos\Flow\Annotations as Flow;
 use GuzzleHttp\Client;
+use Neos\Flow\Cache\CacheManager;
 use Neos\Flow\Mvc\ActionRequestFactory;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
@@ -13,6 +14,7 @@ use Neos\Flow\Mvc\Routing\UriBuilder;
 use Neos\Flow\Core\Bootstrap;
 use Neos\Flow\Mvc\ActionRequest;
 use Neos\Flow\Exception;
+use Neos\Media\Domain\Model\Thumbnail;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -83,6 +85,12 @@ class KrakenService implements KrakenServiceInterface
     protected $systemLogger;
 
     /**
+     * @var CacheManager
+     * @Flow\Inject
+     */
+    protected $cacheManager;
+
+    /**
      * @param array $settings
      */
     public function injectSettings(array $settings)
@@ -95,14 +103,18 @@ class KrakenService implements KrakenServiceInterface
     /**
      * Request optimized resource from Kraken and wait for optimized resource in response.
      *
-     * @param PersistentResource $thumbnail
+     * @param Thumbnail $thumbnail
      * @param array $krakenOptionsOverride
      * @return string the response as JSON containing the path the optimized resource and meta data
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws Exception
      */
-    public function requestOptimizedResource(PersistentResource $thumbnail, array $krakenOptionsOverride = []): string
+    public function requestOptimizedResource(Thumbnail $thumbnail, array $krakenOptionsOverride = []): string
     {
+        $cacheEntryIdentifier = $this->persistenceManager->getIdentifierByObject($thumbnail);
+        $resource = $thumbnail->getResource();
+        $this->cacheManager->getCache('GesagtGetan_KrakenOptimizer_LiveOptimization')->set($cacheEntryIdentifier, $resource->getSha1());
+
         if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) ||
             !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
             throw new Exception(
@@ -126,7 +138,7 @@ class KrakenService implements KrakenServiceInterface
                     ],
                     [
                         'name' => 'file',
-                        'contents'=> Psr7\stream_for($thumbnail->getStream())
+                        'contents'=> Psr7\stream_for($resource->getStream())
                     ]
                 ]
             ]
@@ -137,14 +149,16 @@ class KrakenService implements KrakenServiceInterface
      * Request optimized resource from Kraken and also define callback URL
      * for asynchronous image replacement.
      *
-     * @param PersistentResource $resource
+     * @param Thumbnail $thumbnail
      * @return string the response as JSON containing the Id of the async call
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws Exception
      * @throws \Neos\Flow\Mvc\Routing\Exception\MissingActionNameException
      */
-    public function requestOptimizedResourceAsynchronously(PersistentResource $resource): string
+    public function requestOptimizedResourceAsynchronously(Thumbnail $thumbnail): string
     {
+        $resource = $thumbnail->getResource();
+
         if (!isset($this->krakenOptionsFromSettings['auth']['api_key']) ||
             !isset($this->krakenOptionsFromSettings['auth']['api_secret'])) {
             throw new Exception(
@@ -167,7 +181,7 @@ class KrakenService implements KrakenServiceInterface
             )
         ];
 
-        return $this->requestOptimizedResource($resource, $krakenOptions);
+        return $this->requestOptimizedResource($thumbnail, $krakenOptions);
     }
 
     /**
