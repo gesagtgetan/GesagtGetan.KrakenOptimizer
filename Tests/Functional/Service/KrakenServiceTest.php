@@ -1,4 +1,5 @@
 <?php
+
 namespace GesagtGetan\KrakenOptimizer\Tests\Functional\Service;
 
 use GesagtGetan\KrakenOptimizer\Service\KrakenService;
@@ -14,15 +15,13 @@ use Neos\Media\Domain\Service\ThumbnailService;
 class KrakenServiceTest extends FunctionalTestCase
 {
     /**
-     * @var ResourceManager
-     */
-    protected $resourceManager;
-
-    /**
      * @var boolean
      */
     protected static $testablePersistenceEnabled = true;
-
+    /**
+     * @var ResourceManager
+     */
+    protected $resourceManager;
     /**
      * @var KrakenService
      */
@@ -100,9 +99,10 @@ class KrakenServiceTest extends FunctionalTestCase
             $thumbnail = $this->thumbnailService->getThumbnail($image, $thumbnailConfiguration);
             $this->persistenceManager->persistAll();
             if ($this->thumbnailRepository->findOneByAssetAndThumbnailConfiguration(
-                    $image,
-                    $thumbnailConfiguration
-                ) instanceof Thumbnail
+                $image,
+                $thumbnailConfiguration
+            )
+            instanceof Thumbnail
             ) {
                 $this->thumbnailRepository->update($thumbnail);
             } else {

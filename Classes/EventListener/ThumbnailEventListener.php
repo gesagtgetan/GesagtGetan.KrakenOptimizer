@@ -48,9 +48,9 @@ class ThumbnailEventListener
             $cache = $this->cacheManager->getCache('GesagtGetan_KrakenOptimizer_LiveOptimization');
             $cacheEntryIdentifier = $this->persistenceManager->getIdentifierByObject($thumbnail);
             $oldResourceSha1 = $cache->get($cacheEntryIdentifier);
-            if($resource !== null && !$oldResourceSha1) {
+            if ($resource !== null && !$oldResourceSha1) {
                 $this->processThumbnailSlot->retrieveAdjustedThumbnailResource($thumbnail);
-            } elseif($oldResourceSha1 !== $resource->getSha1()) {
+            } elseif ($oldResourceSha1 !== $resource->getSha1()) {
                 $cache->remove($cacheEntryIdentifier);
             }
         }
