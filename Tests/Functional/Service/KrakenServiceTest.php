@@ -5,6 +5,11 @@ use GesagtGetan\KrakenOptimizer\Service\KrakenService;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use Neos\Flow\Tests\FunctionalTestCase;
 use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Media\Domain\Model\Image;
+use Neos\Media\Domain\Model\Thumbnail;
+use Neos\Media\Domain\Model\ThumbnailConfiguration;
+use Neos\Media\Domain\Repository\ThumbnailRepository;
+use Neos\Media\Domain\Service\ThumbnailService;
 
 class KrakenServiceTest extends FunctionalTestCase
 {
@@ -28,6 +33,16 @@ class KrakenServiceTest extends FunctionalTestCase
      */
     protected $testResource;
 
+    /**
+     * @var ThumbnailRepository
+     */
+    protected $thumbnailRepository;
+
+    /**
+     * @var ThumbnailService
+     */
+    protected $thumbnailService;
+
     public function setUp(): void
     {
         parent::setUp();
@@ -47,8 +62,14 @@ class KrakenServiceTest extends FunctionalTestCase
      */
     public function apiRequestWithArbitraryResourceReturnsSuccessfulResponse()
     {
+        $thumbnails = $this->generateFakeThumbnails(
+            $this->testResource,
+            new ThumbnailConfiguration(50, 50, 50, 50),
+            5
+        );
+
         $response = json_decode(
-            $this->krakenService->requestOptimizedResource($this->testResource, ['wait' => true]),
+            $this->krakenService->requestOptimizedResource($thumbnails[0]->getResource(), ['wait' => true]),
             true
         );
 
@@ -57,5 +78,41 @@ class KrakenServiceTest extends FunctionalTestCase
         $this->assertIsString($response['file_name']);
         $this->assertIsString($response['kraked_url']);
         $this->assertIsInt($response['saved_bytes']);
+    }
+
+    /**
+     * @param PersistentResource $resource
+     * @param ThumbnailConfiguration $thumbnailConfiguration
+     * @param int $amount
+     * @return Thumbnail[]
+     * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    private function generateFakeThumbnails(
+        PersistentResource $resource,
+        ThumbnailConfiguration $thumbnailConfiguration,
+        int $amount = 1
+    ): array {
+        $thumbnails = [];
+
+        $image = new Image($resource);
+        while ($amount > 0) {
+            $thumbnail = $this->thumbnailService->getThumbnail($image, $thumbnailConfiguration);
+            $this->persistenceManager->persistAll();
+            if ($this->thumbnailRepository->findOneByAssetAndThumbnailConfiguration(
+                    $image,
+                    $thumbnailConfiguration
+                ) instanceof Thumbnail
+            ) {
+                $this->thumbnailRepository->update($thumbnail);
+            } else {
+                $this->thumbnailRepository->add($thumbnail);
+            }
+
+            $thumbnails[] = $thumbnail;
+            $amount--;
+        }
+
+        return $thumbnails;
     }
 }
