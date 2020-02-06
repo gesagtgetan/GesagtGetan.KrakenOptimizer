@@ -113,7 +113,12 @@ class KrakenController extends ActionController
             }
         } catch (\Exception $e) {
             $this->logger->error(
-                sprintf('Failed attempting to replace resource %s for thumbnail', $resourceIdentifier)
+                sprintf('Failed attempting to replace resource %s for thumbnail', $resourceIdentifier),
+                [
+                    'krakenIoResult' => $krakenIoResult,
+                    'exceptionMessage' => $e->getMessage(),
+                    'exceptionCode' => $e->getCode()
+                ]
             );
         }
     }
