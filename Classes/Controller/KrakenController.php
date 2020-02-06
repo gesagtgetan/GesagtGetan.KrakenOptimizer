@@ -11,6 +11,7 @@ use GesagtGetan\KrakenOptimizer\Service\KrakenServiceInterface;
 use Neos\Flow\Persistence\PersistenceManagerInterface;
 use Neos\Flow\ResourceManagement\PersistentResource;
 use Neos\Flow\ResourceManagement\ResourceManager;
+use Neos\Flow\ResourceManagement\ResourceRepository;
 use Neos\Media\Domain\Model\Thumbnail;
 
 /**
@@ -51,9 +52,9 @@ class KrakenController extends ActionController
 
     /**
      * @Flow\Inject
-     * @var ResourceManager
+     * @var ResourceRepository
      */
-    protected $resourceManager;
+    protected $resourceRepository;
 
     /**
      * Replaces the local file within the file system with the optimized image delivered by Kraken.
@@ -89,7 +90,7 @@ class KrakenController extends ActionController
 
         try {
             $resourceIdentifier = $krakenIoResult['resourceIdentifier'];
-            $resource = $this->resourceManager->getResourceBySha1($resourceIdentifier);
+            $resource = $this->resourceRepository->findByIdentifier($resourceIdentifier);
 
             if ((!$resource instanceof PersistentResource)) {
                 throw new Exception(
