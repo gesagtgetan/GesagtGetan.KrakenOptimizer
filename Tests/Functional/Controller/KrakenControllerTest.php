@@ -170,6 +170,7 @@ class KrakenControllerTest extends FunctionalTestCase
      * @param int $amount
      * @return Thumbnail[]
      * @throws \Neos\Flow\Persistence\Exception\IllegalObjectTypeException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     private function generateFakeThumbnails(
         PersistentResource $resource,

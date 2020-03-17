@@ -69,7 +69,7 @@ class ProcessThumbnailSlot
             $this->krakenService->shouldOptimize($originalResource, $thumbnailResource) === true
         ) {
             try {
-                $this->krakenService->requestOptimizedResourceAsynchronously($thumbnailResource);
+                $this->krakenService->requestOptimizedResourceAsynchronously($thumbnail);
                 $this->systemLogger->debug('Requesting optimized version for ' . $thumbnailResource->getFilename() .
                     ' (' . $thumbnailResource->getSha1() . ')' .
                     ' from Kraken. Actual replacement is done asynchronously via callback.');

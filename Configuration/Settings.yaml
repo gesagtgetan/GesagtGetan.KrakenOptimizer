@@ -17,3 +17,10 @@ Neos:
       routes:
         GesagtGetan.KrakenOptimizer:
           position: start
+    persistence:
+      doctrine:
+        eventListeners:
+          GesagtGetan\KrakenOptimizer\EventListener\ThumbnailEventListener:
+            events:
+              - postUpdate
+            listener: GesagtGetan\KrakenOptimizer\EventListener\ThumbnailEventListener
